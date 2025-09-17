@@ -28,11 +28,15 @@ use FacturaScripts\Dinamic\Lib\Email\TextBlock as DinTextBlock;
 use FacturaScripts\Dinamic\Model\EmailNotification;
 use FacturaScripts\Dinamic\Model\EmailSent;
 use FacturaScripts\Dinamic\Model\Empresa;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\OAuth;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use TheNetworg\OAuth2\Client\Provider\Azure;
+use Throwable;
 
 /**
  * Description of NewMail
@@ -43,6 +47,10 @@ use Twig\Error\SyntaxError;
 class NewMail
 {
     const ATTACHMENTS_TMP_PATH = 'MyFiles/Tmp/Email/';
+
+    protected const XOAUTH2_REQUIRED_SETTINGS = ['tenant_id', 'client_id', 'client_secret', 'redirect_uri', 'refresh_token'];
+
+    protected const XOAUTH2_SCOPE = 'https://outlook.office365.com/.default';
 
     /** @var Empresa */
     public $empresa;
@@ -67,6 +75,9 @@ class NewMail
 
     /** @var PHPMailer */
     protected $mail;
+
+    /** @var array|null */
+    protected $oauthSettings;
 
     /** @var array */
     private static $mailer = ['mail' => 'Mail', 'sendmail' => 'SendMail', 'smtp' => 'SMTP'];
@@ -106,9 +117,12 @@ class NewMail
         $this->mail->Mailer = Tools::settings('email', 'mailer');
 
         $this->mail->SMTPSecure = Tools::settings('email', 'enc', '');
-        if ($this->mail->SMTPSecure) {
+        $authType = Tools::settings('email', 'authtype', '');
+        if ($this->mail->SMTPSecure || 'XOAUTH2' === $authType) {
             $this->mail->SMTPAuth = true;
-            $this->mail->AuthType = Tools::settings('email', 'authtype', '');
+        }
+        if (!empty($authType)) {
+            $this->mail->AuthType = $authType;
         }
 
         $this->mail->Host = Tools::settings('email', 'host');
@@ -225,7 +239,50 @@ class NewMail
      */
     public function canSendMail(): bool
     {
-        return !empty($this->fromEmail) && !empty($this->mail->Password) && !empty($this->mail->Host);
+        if (empty($this->fromEmail) || empty($this->mail->Host)) {
+            return false;
+        }
+
+        if ($this->isXOAUTH2()) {
+            return $this->hasOAuthCredentials();
+        }
+
+        return !empty($this->mail->Password);
+    }
+
+    protected function getOAuthSettings(): array
+    {
+        if (null === $this->oauthSettings) {
+            $this->oauthSettings = [];
+            foreach (self::XOAUTH2_REQUIRED_SETTINGS as $key) {
+                $this->oauthSettings[$key] = trim((string)Tools::settings('email', $key, ''));
+            }
+        }
+
+        return $this->oauthSettings;
+    }
+
+    protected function hasOAuthCredentials(?array $settings = null): bool
+    {
+        $settings = $settings ?? $this->getOAuthSettings();
+        $missing = [];
+        foreach (self::XOAUTH2_REQUIRED_SETTINGS as $key) {
+            if (empty($settings[$key])) {
+                $missing[] = $key;
+            }
+        }
+
+        if (!empty($missing)) {
+            Tools::log()->error('XOAUTH2 configuration incomplete: missing ' . implode(', ', $missing) . '.');
+            return false;
+        }
+
+        return true;
+    }
+
+    protected function isXOAUTH2(): bool
+    {
+        return 'XOAUTH2' === $this->mail->AuthType;
     }
 
     public function cc(string $email, string $name = ''): NewMail
@@ -331,6 +388,77 @@ class NewMail
         return $this;
     }
 
+    protected function applyOAuth(): bool
+    {
+        $settings = $this->getOAuthSettings();
+        if (false === $this->hasOAuthCredentials($settings)) {
+            return false;
+        }
+
+        try {
+            $provider = $this->createOAuthProvider($settings);
+        } catch (Throwable $exception) {
+            Tools::log()->error('Unable to initialize OAuth provider: ' . $exception->getMessage());
+            return false;
+        }
+
+        try {
+            $accessToken = $this->requestOAuthAccessToken($provider, $settings);
+        } catch (IdentityProviderException $exception) {
+            Tools::log()->error('OAuth token refresh failed: ' . $exception->getMessage());
+            return false;
+        } catch (Throwable $exception) {
+            Tools::log()->error('OAuth provider error: ' . $exception->getMessage());
+            return false;
+        }
+
+        $refreshToken = method_exists($accessToken, 'getRefreshToken') ? $accessToken->getRefreshToken() : null;
+        if (!empty($refreshToken) && $refreshToken !== $settings['refresh_token']) {
+            Tools::settingsSet('email', 'refresh_token', $refreshToken);
+            $this->oauthSettings['refresh_token'] = $refreshToken;
+            try {
+                if (false === Tools::settingsSave()) {
+                    Tools::log()->warning('Unable to persist refreshed OAuth token. The in-memory value will be used.');
+                }
+            } catch (Throwable $exception) {
+                Tools::log()->warning('Unable to persist refreshed OAuth token: ' . $exception->getMessage());
+            }
+        }
+
+        $this->mail->setOAuth(new OAuth([
+            'provider' => $provider,
+            'clientId' => $settings['client_id'],
+            'clientSecret' => $settings['client_secret'],
+            'refreshToken' => $this->oauthSettings['refresh_token'] ?? $settings['refresh_token'],
+            'scope' => self::XOAUTH2_SCOPE,
+            'userName' => $this->mail->Username,
+        ]));
+
+        return true;
+    }
+
+    protected function createOAuthProvider(array $settings)
+    {
+        if (false === class_exists(Azure::class)) {
+            throw new \RuntimeException('Azure OAuth provider dependency not installed. Run composer update to install thenetworg/oauth2-azure.');
+        }
+
+        return new Azure([
+            'clientId' => $settings['client_id'],
+            'clientSecret' => $settings['client_secret'],
+            'redirectUri' => $settings['redirect_uri'],
+            'tenant' => $settings['tenant_id'],
+        ]);
+    }
+
+    protected function requestOAuthAccessToken($provider, array $settings)
+    {
+        return $provider->getAccessToken('refresh_token', [
+            'refresh_token' => $settings['refresh_token'],
+            'scope' => self::XOAUTH2_SCOPE,
+        ]);
+    }
+
     /**
      * Envía el correo.
      *
@@ -343,6 +471,10 @@ class NewMail
     {
         if (false === $this->canSendMail()) {
             Tools::log()->warning('email-not-configured');
+            return false;
+        }
+
+        if ($this->isXOAUTH2() && false === $this->applyOAuth()) {
             return false;
         }
 
