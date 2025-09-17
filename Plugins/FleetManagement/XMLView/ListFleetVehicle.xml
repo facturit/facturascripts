@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <column name="fleet-license-plate" order="100">
+            <widget type="text" fieldname="license_plate" onclick="EditFleetVehicle"/>
+        </column>
+        <column name="fleet-vehicle-type" order="110">
+            <widget type="select" fieldname="vehicle_type" translate="true">
+                <values title="fleet-vehicle-type-car">coche</values>
+                <values title="fleet-vehicle-type-van">furgoneta</values>
+                <values title="fleet-vehicle-type-truck">camion</values>
+            </widget>
+        </column>
+        <column name="fleet-brand" order="120">
+            <widget type="text" fieldname="brand"/>
+        </column>
+        <column name="fleet-model" order="130">
+            <widget type="text" fieldname="model"/>
+        </column>
+    </columns>
+</view>

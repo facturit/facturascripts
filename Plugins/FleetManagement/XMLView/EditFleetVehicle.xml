@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="vehicle" numcolumns="12">
+            <column name="fleet-license-plate" numcolumns="4" order="100">
+                <widget type="text" fieldname="license_plate" icon="fa-solid fa-id-card" maxlength="20" required="true"/>
+            </column>
+            <column name="fleet-vehicle-type" numcolumns="4" order="110">
+                <widget type="select" fieldname="vehicle_type" required="true" translate="true">
+                    <values title="fleet-vehicle-type-car">coche</values>
+                    <values title="fleet-vehicle-type-van">furgoneta</values>
+                    <values title="fleet-vehicle-type-truck">camion</values>
+                </widget>
+            </column>
+            <column name="fleet-brand" numcolumns="4" order="120">
+                <widget type="text" fieldname="brand" maxlength="100"/>
+            </column>
+            <column name="fleet-model" numcolumns="4" order="130">
+                <widget type="text" fieldname="model" maxlength="100"/>
+            </column>
+        </group>
+    </columns>
+</view>
