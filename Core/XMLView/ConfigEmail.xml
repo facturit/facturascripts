@@ -67,6 +67,21 @@
             <column name="lowsecure" title="low-security" order="160">
                 <widget type="checkbox" fieldname="lowsecure"/>
             </column>
+            <column name="tenant-id" numcolumns="6" order="200">
+                <widget type="text" fieldname="tenant_id"/>
+            </column>
+            <column name="client-id" numcolumns="6" order="210">
+                <widget type="text" fieldname="client_id"/>
+            </column>
+            <column name="client-secret" numcolumns="6" order="220">
+                <widget type="password" fieldname="client_secret"/>
+            </column>
+            <column name="redirect-uri" numcolumns="6" order="230">
+                <widget type="text" fieldname="redirect_uri"/>
+            </column>
+            <column name="refresh-token" numcolumns="12" order="240">
+                <widget type="textarea" fieldname="refresh_token"/>
+            </column>
         </group>
         <group name="reply" title="reply" icon="fa-solid fa-reply" numcolumns="3">
             <column name="replytouseremail" title="email-replies" order="100">

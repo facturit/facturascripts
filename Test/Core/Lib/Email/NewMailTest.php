@@ -20,6 +20,8 @@
 namespace FacturaScripts\Test\Core\Lib\Email;
 
 use FacturaScripts\Core\Lib\Email\NewMail;
+use FacturaScripts\Core\Tools;
+use PHPMailer\PHPMailer\PHPMailer;
 use PHPUnit\Framework\TestCase;
 
 final class NewMailTest extends TestCase
@@ -66,5 +68,134 @@ final class NewMailTest extends TestCase
         $this->assertEmpty($mailer->getToAddresses());
         $this->assertEmpty($mailer->getCcAddresses());
         $this->assertCount(1, $mailer->getBccAddresses());
+    }
+
+    public function testCanSendMailWithXOAUTH2RequiresCredentials(): void
+    {
+        Tools::settingsClear();
+        Tools::settingsSet('email', 'email', 'user@example.com');
+        Tools::settingsSet('email', 'host', 'smtp.office365.com');
+        Tools::settingsSet('email', 'authtype', 'XOAUTH2');
+
+        $mailer = NewMail::create();
+
+        $this->assertFalse($mailer->canSendMail());
+    }
+
+    public function testCanSendMailWithXOAUTH2AndCredentials(): void
+    {
+        $this->configureXOAUTH2Settings();
+
+        $mailer = NewMail::create();
+
+        $this->assertTrue($mailer->canSendMail());
+    }
+
+    public function testSendWithXOAUTH2UsesOAuthProvider(): void
+    {
+        $this->configureXOAUTH2Settings();
+
+        $provider = new \stdClass();
+        $token = new DummyAccessToken('refresh-token');
+
+        $mailer = new NewMailOAuthTestDouble();
+        $mailer->provider = $provider;
+        $mailer->token = $token;
+
+        $mailStub = new TestMailerOAuthPHPMailer();
+        $mailStub->Mailer = 'SMTP';
+        $mailStub->Host = Tools::settings('email', 'host');
+        $mailStub->AuthType = 'XOAUTH2';
+        $mailStub->SMTPAuth = true;
+        $mailStub->Username = Tools::settings('email', 'user');
+
+        $property = new \ReflectionProperty(NewMail::class, 'mail');
+        $property->setAccessible(true);
+        $property->setValue($mailer, $mailStub);
+
+        $this->assertTrue($mailer->send());
+        $this->assertTrue($mailer->createOAuthProviderCalled);
+        $this->assertTrue($mailer->requestOAuthAccessTokenCalled);
+        $this->assertIsObject($mailStub->oauthConfig);
+    }
+
+    private function configureXOAUTH2Settings(): void
+    {
+        Tools::settingsClear();
+        Tools::settingsSet('email', 'email', 'user@example.com');
+        Tools::settingsSet('email', 'user', 'user@example.com');
+        Tools::settingsSet('email', 'host', 'smtp.office365.com');
+        Tools::settingsSet('email', 'mailer', 'SMTP');
+        Tools::settingsSet('email', 'port', '587');
+        Tools::settingsSet('email', 'enc', 'tls');
+        Tools::settingsSet('email', 'authtype', 'XOAUTH2');
+        Tools::settingsSet('email', 'tenant_id', 'tenant');
+        Tools::settingsSet('email', 'client_id', 'client');
+        Tools::settingsSet('email', 'client_secret', 'secret');
+        Tools::settingsSet('email', 'redirect_uri', 'https://example.com/callback');
+        Tools::settingsSet('email', 'refresh_token', 'refresh-token');
+        Tools::settingsSet('email', 'password', '');
+    }
+}
+
+class DummyAccessToken
+{
+    public function __construct(private readonly ?string $refreshToken)
+    {
+    }
+
+    public function getRefreshToken(): ?string
+    {
+        return $this->refreshToken;
+    }
+}
+
+class NewMailOAuthTestDouble extends NewMail
+{
+    public $provider;
+    public $token;
+    public $createOAuthProviderCalled = false;
+    public $requestOAuthAccessTokenCalled = false;
+
+    protected function renderHTML(): void
+    {
+        $this->html = '<p>mock</p>';
+    }
+
+    protected function createOAuthProvider(array $settings)
+    {
+        $this->createOAuthProviderCalled = true;
+        return $this->provider;
+    }
+
+    protected function requestOAuthAccessToken($provider, array $settings)
+    {
+        $this->requestOAuthAccessTokenCalled = true;
+        return $this->token;
+    }
+}
+
+class TestMailerOAuthPHPMailer extends PHPMailer
+{
+    public $oauthConfig;
+
+    public function __construct()
+    {
+        parent::__construct(true);
+    }
+
+    public function setOAuth($oauth)
+    {
+        $this->oauthConfig = $oauth;
+    }
+
+    public function smtpConnect($options = null, $timeout = 300)
+    {
+        return true;
+    }
+
+    public function send()
+    {
+        return true;
     }
 }
