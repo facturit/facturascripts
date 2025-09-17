@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="assignment" numcolumns="12">
+            <column name="fleet-assignment-date" numcolumns="4" order="100">
+                <widget type="date" fieldname="assignment_date" required="true"/>
+            </column>
+            <column name="fleet-assignment-vehicle" numcolumns="4" order="110">
+                <widget type="select" fieldname="vehicle_id" required="true">
+                    <values source="fleet_vehicles" fieldcode="id" fieldtitle="license_plate"/>
+                </widget>
+            </column>
+            <column name="fleet-assignment-user" numcolumns="4" order="120">
+                <widget type="select" fieldname="user_nick" required="true">
+                    <values source="users" fieldcode="nick" fieldtitle="nick"/>
+                </widget>
+            </column>
+            <column name="fleet-assignment-notes" numcolumns="12" order="130">
+                <widget type="textarea" fieldname="notes" maxlength="255" rows="4"/>
+            </column>
+        </group>
+    </columns>
+</view>

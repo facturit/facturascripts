@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <column name="fleet-assignment-date" order="100">
+            <widget type="date" fieldname="assignment_date" onclick="EditFleetVehicleAssignment"/>
+        </column>
+        <column name="fleet-assignment-vehicle" order="110">
+            <widget type="select" fieldname="vehicle_id">
+                <values source="fleet_vehicles" fieldcode="id" fieldtitle="license_plate"/>
+            </widget>
+        </column>
+        <column name="fleet-assignment-user" order="120">
+            <widget type="select" fieldname="user_nick">
+                <values source="users" fieldcode="nick" fieldtitle="nick"/>
+            </widget>
+        </column>
+        <column name="fleet-assignment-notes" order="130">
+            <widget type="text" fieldname="notes"/>
+        </column>
+    </columns>
+</view>
