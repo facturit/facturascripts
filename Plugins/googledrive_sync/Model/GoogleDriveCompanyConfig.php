@@ -5,6 +5,7 @@ namespace FacturaScripts\Plugins\googledrive_sync\Model;
 use FacturaScripts\Core\Template\ModelClass;
 use FacturaScripts\Core\Template\ModelTrait;
 use FacturaScripts\Core\Tools;
+use FacturaScripts\Core\Where;
 
 /**
  * Configuration model per company for the Google Drive synchronisation plugin.
@@ -101,6 +102,28 @@ class GoogleDriveCompanyConfig extends ModelClass
         $this->share_emails = Tools::noHtml($this->share_emails);
 
         return parent::test();
+    }
+
+    public function isConfigured(): bool
+    {
+        if (!empty($this->credentials_json)) {
+            return true;
+        }
+
+        return !empty($this->root_folder_id);
+    }
+
+    public static function forCompany(int $companyId): self
+    {
+        $where = [Where::eq('idempresa', $companyId)];
+        $config = self::findWhere($where);
+        if ($config instanceof self) {
+            return $config;
+        }
+
+        $config = new self();
+        $config->idempresa = $companyId;
+        return $config;
     }
 
     public static function tableName(): string
