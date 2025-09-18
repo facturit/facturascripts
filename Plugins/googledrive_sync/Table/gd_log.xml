@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : gd_log.xml
+    Description:
+        Structure for the gd_log table used by the Google Drive Sync plugin.
+-->
+<table>
+    <column>
+        <name>id</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>idempresa</name>
+        <type>integer</type>
+    </column>
+    <column>
+        <name>model</name>
+        <type>character varying(60)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>iddocument</name>
+        <type>integer</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>action</name>
+        <type>character varying(30)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>result</name>
+        <type>character varying(20)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>message</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>google_file_id</name>
+        <type>character varying(128)</type>
+    </column>
+    <column>
+        <name>filesize</name>
+        <type>bigint</type>
+    </column>
+    <column>
+        <name>username</name>
+        <type>character varying(50)</type>
+    </column>
+    <column>
+        <name>duration_ms</name>
+        <type>integer</type>
+    </column>
+    <column>
+        <name>metadata</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>created_at</name>
+        <type>timestamp</type>
+        <null>NO</null>
+        <default>CURRENT_TIMESTAMP</default>
+    </column>
+    <constraint>
+        <name>gd_log_pkey</name>
+        <type>PRIMARY KEY (id)</type>
+    </constraint>
+    <constraint>
+        <name>ca_gd_log_idempresa</name>
+        <type>FOREIGN KEY (idempresa) REFERENCES empresas (idempresa) ON DELETE SET NULL ON UPDATE CASCADE</type>
+    </constraint>
+    <index>
+        <name>gd_log_idx_doc</name>
+        <columns>model,iddocument</columns>
+    </index>
+    <index>
+        <name>gd_log_idx_created</name>
+        <columns>created_at</columns>
+    </index>
+</table>

@@ -1,0 +1,332 @@
+{% set filters = fsc.getQueueFilters() %}
+{% set stats = fsc.getQueueStats() %}
+{% set currentView = fsc.getCurrentView() %}
+
+<form method="get" class="row g-2 align-items-end mb-3">
+    <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+    <div class="col-md-4">
+        <label class="form-label" for="queueFilterCompany">{{ 'Company'|trans }}</label>
+        <select id="queueFilterCompany" name="queue_company" class="form-select" onchange="this.form.submit()">
+            <option value="0" {{ filters.company == 0 ? 'selected' }}>{{ 'All'|trans }}</option>
+            {% for id, name in fsc.getCompanyOptions() %}
+                <option value="{{ id }}" {{ filters.company == id ? 'selected' }}>{{ name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" for="queueFilterState">{{ 'State'|trans }}</label>
+        <select id="queueFilterState" name="queue_state" class="form-select" onchange="this.form.submit()">
+            {% for value, label in fsc.getQueueStates() %}
+                <option value="{{ value }}" {{ filters.state == value ? 'selected' }}>{{ label|trans }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2 text-end">
+        <button type="submit" class="btn btn-outline-primary mt-3">{{ 'Filter'|trans }}</button>
+    </div>
+</form>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-warning h-100">
+            <div class="card-body">
+                <div class="text-muted text-uppercase small">{{ 'Queued'|trans }}</div>
+                <div class="h3 mb-0">{{ stats.queued }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info h-100">
+            <div class="card-body">
+                <div class="text-muted text-uppercase small">{{ 'Running'|trans }}</div>
+                <div class="h3 mb-0">{{ stats.running }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success h-100">
+            <div class="card-body">
+                <div class="text-muted text-uppercase small">{{ 'Done'|trans }}</div>
+                <div class="h3 mb-0">{{ stats.done }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-danger h-100">
+            <div class="card-body">
+                <div class="text-muted text-uppercase small">{{ 'Failed'|trans }}</div>
+                <div class="h3 mb-0">{{ stats.failed }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="post" id="queue-form" class="card mb-4">
+    {{ formToken() }}
+    <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+    <input type="hidden" name="job_id" id="queue-form-job-id" value=""/>
+    <input type="hidden" name="queue_company" value="{{ filters.company }}"/>
+    <input type="hidden" name="queue_state" value="{{ filters.state }}"/>
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+            <h5 class="card-title mb-0">{{ 'Queue'|trans }}</h5>
+            <small class="text-muted">{{ 'Total'|trans }}: {{ stats.total }}</small>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <button type="submit" name="action" value="retry-selected" class="btn btn-outline-primary btn-sm">
+                <i class="fa-solid fa-rotate-right me-1"></i>{{ 'Retry'|trans }} · {{ 'Selected'|trans }}
+            </button>
+            <button type="submit" name="action" value="retry-failed" class="btn btn-outline-danger btn-sm">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i>{{ 'Retry'|trans }} · {{ 'Failed'|trans }}
+            </button>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+            <tr>
+                <th style="width:2.5rem;">
+                    <input type="checkbox" class="form-check-input" id="queue-select-all"/>
+                </th>
+                <th>{{ 'Document'|trans }}</th>
+                <th>{{ 'Action'|trans }}</th>
+                <th>{{ 'State'|trans }}</th>
+                <th class="text-center">{{ 'Attempts'|trans }}</th>
+                <th class="text-end">{{ 'Duration'|trans }}</th>
+                <th class="text-nowrap">{{ 'Updated'|trans }}</th>
+                <th>{{ 'Error'|trans }}</th>
+                <th class="text-end">{{ 'Options'|trans }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for job in fsc.getRecentJobs(40) %}
+                <tr class="{{ job.state_class }}">
+                    <td>
+                        <input type="checkbox" class="form-check-input" name="job_ids[]" value="{{ job.id }}"/>
+                    </td>
+                    <td>
+                        <div class="fw-semibold">{{ job.doc_label }}</div>
+                        <div class="small text-muted">
+                            {% if job.payload.doc_type %}
+                                {{ job.payload.doc_type }}
+                            {% else %}
+                                {{ job.model|lower }}
+                            {% endif %}
+                            {% if job.payload.doc_year %}
+                                · {{ job.payload.doc_year }}
+                            {% endif %}
+                            {% if job.payload.doc_date %}
+                                · {{ job.payload.doc_date }}
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>{{ job.action|trans }}</td>
+                    <td>
+                        <span class="badge bg-light text-dark border">{{ job.state|trans }}</span>
+                    </td>
+                    <td class="text-center">{{ job.attempts }}/{{ job.max_attempts }}</td>
+                    <td class="text-end">
+                        {% if job.duration_ms %}
+                            {{ (job.duration_ms / 1000)|number_format(2, '.', ',') }}&nbsp;s
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td class="text-nowrap">{{ job.updated_at }}</td>
+                    <td class="small text-break">{{ job.last_error }}</td>
+                    <td class="text-end">
+                        <button type="submit" name="action" value="retry-job"
+                                class="btn btn-sm btn-outline-primary"
+                                onclick="document.getElementById('queue-form-job-id').value='{{ job.id }}';">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-4">{{ 'no-data'|trans }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
+{% set logs = fsc.getRecentLogs(25) %}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">{{ 'Audit log'|trans }}</h5>
+        <span class="text-muted small">{{ logs|length }} {{ 'entries'|trans }}</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+            <tr>
+                <th>{{ 'Document'|trans }}</th>
+                <th>{{ 'Action'|trans }}</th>
+                <th>{{ 'Result'|trans }}</th>
+                <th>{{ 'Message'|trans }}</th>
+                <th>{{ 'User'|trans }}</th>
+                <th class="text-end">{{ 'Size'|trans }}</th>
+                <th class="text-end">{{ 'Duration'|trans }}</th>
+                <th class="text-nowrap">{{ 'Created'|trans }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for log in logs %}
+                <tr>
+                    <td>
+                        <div class="fw-semibold">{{ log.model }} #{{ log.iddocument }}</div>
+                        {% if log.google_file_id %}
+                            <div class="small text-muted">{{ log.google_file_id }}</div>
+                        {% endif %}
+                        {% if log.metadata.shared_with is defined and log.metadata.shared_with %}
+                            <div class="small text-muted">
+                                <i class="fa-solid fa-share-nodes me-1"></i>{{ 'Shared with'|trans }}:
+                                {{ log.metadata.shared_with|join(', ') }}
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td>{{ log.action|trans }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ log.result|trans }}</span></td>
+                    <td class="small text-break">{{ log.message }}</td>
+                    <td>{{ log.username }}</td>
+                    <td class="text-end">
+                        {% if log.filesize %}
+                            {{ (log.filesize / 1024)|number_format(2, '.', ',') }}&nbsp;KB
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if log.duration_ms %}
+                            {{ (log.duration_ms / 1000)|number_format(2, '.', ',') }}&nbsp;s
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td class="text-nowrap">{{ log.created_at }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">{{ 'no-data'|trans }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% set breakdown = fsc.getYearlyBreakdown() %}
+{% if breakdown %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">{{ 'Summary'|trans }}</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>{{ 'Year'|trans }}</th>
+                    <th>{{ 'Document type'|trans }}</th>
+                    <th class="text-end">{{ 'Total'|trans }}</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for year, types in breakdown %}
+                    {% set typeCount = types|length %}
+                    {% for type, total in types %}
+                        <tr>
+                            {% if loop.first %}
+                                <td rowspan="{{ typeCount }}" class="align-middle fw-semibold">{{ year }}</td>
+                            {% endif %}
+                            <td>{{ type }}</td>
+                            <td class="text-end">{{ total }}</td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endif %}
+
+<form method="post" class="card">
+    {{ formToken() }}
+    <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+    <input type="hidden" name="action" value="enqueue-bulk"/>
+    <input type="hidden" name="queue_company" value="{{ filters.company }}"/>
+    <input type="hidden" name="queue_state" value="{{ filters.state }}"/>
+    <div class="card-header">
+        <h5 class="card-title mb-0">{{ 'Wizard'|trans }}</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label" for="bulkCompany">{{ 'Company'|trans }}</label>
+                <select id="bulkCompany" name="bulk_company" class="form-select">
+                    <option value="0">{{ 'All'|trans }}</option>
+                    {% for id, name in fsc.getCompanyOptions() %}
+                        <option value="{{ id }}" {{ filters.company == id ? 'selected' }}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="bulkModel">{{ 'Document type'|trans }}</label>
+                <select id="bulkModel" name="bulk_model" class="form-select" required>
+                    <option value="" selected>{{ 'Select'|trans }}</option>
+                    {% for model in fsc.getAvailableModels() %}
+                        <option value="{{ model }}">{{ model|trans }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="bulkExercise">{{ 'Exercise'|trans }}</label>
+                <select id="bulkExercise" name="bulk_exercise" class="form-select">
+                    <option value="">{{ 'All'|trans }}</option>
+                    {% for code, label in fsc.getExercises() %}
+                        <option value="{{ code }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="bulkLimit">{{ 'Limit'|trans }}</label>
+                <input type="number" id="bulkLimit" name="bulk_limit" class="form-control" value="100" min="1" max="500"/>
+            </div>
+        </div>
+        <div class="row g-3 mt-0 pt-3">
+            <div class="col-md-3">
+                <label class="form-label" for="bulkFrom">{{ 'From date'|trans }}</label>
+                <input type="date" id="bulkFrom" name="bulk_from" class="form-control"/>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="bulkTo">{{ 'To date'|trans }}</label>
+                <input type="date" id="bulkTo" name="bulk_to" class="form-control"/>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="bulkThird">{{ 'Customer / Supplier'|trans }}</label>
+                <input type="text" id="bulkThird" name="bulk_third" class="form-control" placeholder="{{ 'NIF or name'|trans }}"/>
+                <div class="form-text">{{ 'Filter by NIF or name'|trans }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer text-end">
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-cloud-upload-alt me-1"></i>{{ 'Enqueue'|trans }}
+        </button>
+    </div>
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const master = document.getElementById('queue-select-all');
+        if (!master) {
+            return;
+        }
+        master.addEventListener('change', event => {
+            document.querySelectorAll('#queue-form input[name="job_ids[]"]').forEach(cb => {
+                cb.checked = event.target.checked;
+            });
+        });
+    });
+</script>
