@@ -4,7 +4,7 @@
 /doc/
 /MyFiles/
 /node_modules/
-/Plugins/
+/Plugins/*
 /vendor/
 .DS_Store
 .htaccess
@@ -31,3 +31,5 @@ package-lock.json
 .vscode
 *.code-workspace
 .history
+!/Plugins/googledrive_sync/
+!/Plugins/googledrive_sync/**
