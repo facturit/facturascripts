@@ -56,6 +56,7 @@ class SyncWorker
             return false;
         }
 
+        $startedAt = microtime(true);
         $job->attempts++;
         $job->state = 'running';
         $job->locked_at = Tools::dateTime();
@@ -82,6 +83,12 @@ class SyncWorker
                     break;
             }
 
+            $payload = $this->updatePayload($job, $payload, [
+                'last_result' => 'done',
+                'last_run_at' => Tools::dateTime(),
+                'duration_ms' => $this->elapsedMillis($startedAt),
+            ]);
+
             $job->state = 'done';
             $job->available_at = null;
             $job->last_error = null;
@@ -100,6 +107,14 @@ class SyncWorker
                 $backoff = min(3600, (int)pow(2, $job->attempts));
                 $job->available_at = date('Y-m-d H:i:s', time() + $backoff);
             }
+            $payload = $this->updatePayload($job, $payload, [
+                'last_result' => 'failed',
+                'last_run_at' => Tools::dateTime(),
+                'duration_ms' => $this->elapsedMillis($startedAt),
+                'last_error' => $exception->getMessage(),
+            ]);
+
+            $job->locked_at = null;
             $job->save();
             return false;
         }
@@ -135,7 +150,7 @@ class SyncWorker
             'map_id' => $extra['map_id'] ?? null,
             'content_hash' => $extra['content_hash'] ?? null,
             'queued_at' => Tools::dateTime(),
-        ], $extra);
+        ], self::documentMetadata($document), $extra);
 
         try {
             $queue->payload = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -146,6 +161,69 @@ class SyncWorker
         $queue->state = 'queued';
         $queue->available_at = Tools::dateTime();
         return $queue->save();
+    }
+
+    public static function releaseStaleJobs(int $olderThanSeconds = 900): int
+    {
+        $threshold = date('Y-m-d H:i:s', time() - max(60, $olderThanSeconds));
+        $released = 0;
+
+        $rows = GoogleDriveQueue::table()
+            ->whereEq('state', 'running')
+            ->whereLt('locked_at', $threshold)
+            ->get();
+
+        foreach ($rows as $row) {
+            $queue = new GoogleDriveQueue($row);
+            $queue->state = 'queued';
+            $queue->locked_at = null;
+            $queue->available_at = Tools::dateTime();
+            if (empty($queue->last_error)) {
+                $queue->last_error = 'released-stale-job';
+            }
+            $queue->save();
+            $released++;
+        }
+
+        return $released;
+    }
+
+    private static function documentMetadata(BusinessDocument $document): array
+    {
+        $docDate = $document->fecha ?? '';
+        $docYear = null;
+        if (!empty($docDate)) {
+            $timestamp = strtotime($docDate);
+            if ($timestamp !== false) {
+                $docYear = (int)date('Y', $timestamp);
+            }
+        }
+
+        $thirdName = null;
+        if (property_exists($document, 'nombrecliente') && !empty($document->nombrecliente)) {
+            $thirdName = $document->nombrecliente;
+        } elseif (property_exists($document, 'nombreproveedor') && !empty($document->nombreproveedor)) {
+            $thirdName = $document->nombreproveedor;
+        } elseif (property_exists($document, 'razonsocial') && !empty($document->razonsocial)) {
+            $thirdName = $document->razonsocial;
+        } elseif (property_exists($document, 'nombre') && !empty($document->nombre)) {
+            $thirdName = $document->nombre;
+        }
+
+        $identifier = $document->codigo ?? trim((string)($document->codserie ?? '') . '-' . (string)($document->numero ?? ''));
+
+        return [
+            'doc_type' => Tools::slug($document->modelClassName()),
+            'doc_model' => $document->modelClassName(),
+            'doc_identifier' => trim($identifier, '-'),
+            'doc_number' => $document->numero ?? null,
+            'doc_serie' => $document->codserie ?? null,
+            'doc_date' => $docDate ?: null,
+            'doc_year' => $docYear,
+            'third_nif' => $document->cifnif ?? null,
+            'third_name' => $thirdName,
+            'company_id' => (int)($document->idempresa ?? 0),
+        ];
     }
 
     private function processSync(GoogleDriveQueue $job, GoogleDriveCompanyConfig $config, array $payload): void
@@ -257,5 +335,23 @@ class SyncWorker
         $map->sync_status = 'failed';
         $map->sync_error = $error;
         $map->save();
+    }
+
+    private function updatePayload(GoogleDriveQueue $job, array $payload, array $overrides): array
+    {
+        $payload = array_merge($payload, $overrides);
+
+        try {
+            $job->payload = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        } catch (JsonException $exception) {
+            $job->payload = '{}';
+        }
+
+        return $payload;
+    }
+
+    private function elapsedMillis(float $startedAt): int
+    {
+        return (int)round((microtime(true) - $startedAt) * 1000);
     }
 }
