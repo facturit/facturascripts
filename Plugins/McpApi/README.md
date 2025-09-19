@@ -1,6 +1,10 @@
 # Plugin MCP API
 
-Este plugin añade una implementación completa del protocolo Model Context Protocol (MCP) sobre la API REST de FacturaScripts. Publica un punto de descubrimiento HTTP tradicional y un endpoint JSON-RPC que permite a un agente de IA inspeccionar los recursos disponibles, consultar datos y ejecutar operaciones de escritura de forma estructurada.
+Este plugin añade una implementación completa del protocolo Model Context Protocol (MCP) sobre la API REST de FacturaScripts. Publica un punto de descubrimiento HTTP tradicional, un manifiesto compatible con clientes MCP modernos y un endpoint JSON-RPC que permite a un agente de IA inspeccionar los recursos disponibles, consultar datos y ejecutar operaciones de escritura de forma estructurada.
+
+## Descubrimiento MCP
+
+- `GET /.well-known/mcp.json`: manifiesto con la versión del protocolo soportada, endpoints disponibles, capacidades y metadatos de autenticación para agentes externos (por ejemplo ChatGPT). El manifiesto incluye los enlaces al flujo OAuth 2.0 y al endpoint JSON-RPC.
 
 ## Endpoints REST
 
@@ -48,7 +52,13 @@ Las solicitudes JSON-RPC sin campo `id` se interpretan como notificaciones y dev
 
 ## Autenticación
 
-Los endpoints mantienen las mismas reglas de autenticación que el resto de la API. Debes enviar la cabecera `X-Auth-Token` (o `Token`) con una clave generada en _Administrador → Usuarios → API_.
+FacturaScripts sigue aceptando la cabecera `X-Auth-Token` (o `Token`) para integraciones manuales, pero el plugin incorpora además un flujo OAuth 2.0 de tipo _authorization code_ para que los agentes MCP puedan obtener tokens compatibles con `Authorization: Bearer`.
+
+1. **Inicio del flujo:** registra `https://<tu-dominio>/mcp/oauth/authorize` como URL de autorización y `https://<tu-dominio>/mcp/oauth/token` como endpoint de tokens. Cuando el cliente redirija al navegador, introduce la clave API que quieras delegar.
+2. **Intercambio de código:** el endpoint `/mcp/oauth/token` acepta peticiones `application/x-www-form-urlencoded` con `grant_type=authorization_code`, `code`, `client_id`, `redirect_uri` y, si procede, `code_verifier` (PKCE).
+3. **Uso de tokens:** cada acceso emitido envuelve la clave API original y expira a la hora. El cliente debe incluirlo en `Authorization: Bearer <token>` al llamar a `/api/v3/mcp`.
+
+> ℹ️ Las claves API pueden generarse desde _Administrador → Usuarios → API_. Puedes revocar un acceso eliminando la clave original o esperando a que caduque el token emitido (1 hora).
 
 ## Instalación
 

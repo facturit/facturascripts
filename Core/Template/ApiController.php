@@ -94,6 +94,15 @@ abstract class ApiController implements ControllerInterface
         // comprobamos el token
         $altToken = $this->request->headers->get('Token', '');
         $token = $this->request->headers->get('X-Auth-Token', $altToken);
+        if (empty($token)) {
+            $authorization = $this->request->headers->get('Authorization', '');
+            if (!empty($authorization) && class_exists('FacturaScripts\\Plugins\\McpApi\\Lib\\OAuth\\TokenBroker')) {
+                $resolved = \FacturaScripts\Plugins\McpApi\Lib\OAuth\TokenBroker::resolveBearerToken($authorization);
+                if (!empty($resolved)) {
+                    $token = $resolved;
+                }
+            }
+        }
         if (false === $this->validateApiToken($token)) {
             $this->saveIncident();
             throw new KernelException('InvalidApiToken', Tools::lang()->trans('auth-token-invalid'));

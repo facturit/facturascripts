@@ -38,9 +38,9 @@ use FacturaScripts\Plugins\McpApi\Lib\Mcp\RpcException;
 class Mcp extends APIResourceClass
 {
     private const RESOURCE_NAME = 'mcp';
-    private const SPEC_VERSION = '1.0.0';
+    public const SPEC_VERSION = '1.0.0';
     private const JSON_RPC_VERSION = '2.0';
-    private const SESSION_TTL = 3600;
+    public const SESSION_TTL = 3600;
     private const MAX_QUERY_LIMIT = 200;
     private const ERROR_PARSE_ERROR = -32700;
     private const ERROR_INVALID_REQUEST = -32600;
