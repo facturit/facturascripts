@@ -4,7 +4,9 @@
 /doc/
 /MyFiles/
 /node_modules/
-/Plugins/
+/Plugins/*
+!/Plugins/McpApi/
+!/Plugins/McpApi/**
 /vendor/
 .DS_Store
 .htaccess
