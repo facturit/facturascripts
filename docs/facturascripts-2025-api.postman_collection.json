@@ -1,0 +1,578 @@
+{
+  "info": {
+    "_postman_id": "35570e45-2956-4e6c-acb8-683927f7c0b7",
+    "name": "FacturaScripts 2025 API",
+    "description": "Colección de ejemplos para invocar la API REST de FacturaScripts 2025. Todas las peticiones incorporan la cabecera \"X-Auth-Token\" con la API key definida en la aplicación y utilizan la versión 3 del endpoint. Modifica las variables de colección para apuntar a tu instancia y credenciales.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost/facturascripts",
+      "type": "string"
+    },
+    {
+      "key": "apiVersion",
+      "value": "3",
+      "type": "string"
+    },
+    {
+      "key": "apiToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "resource",
+      "value": "clientes",
+      "type": "string"
+    },
+    {
+      "key": "resourceCode",
+      "value": "C0001",
+      "type": "string"
+    },
+    {
+      "key": "clienteCodigo",
+      "value": "API001",
+      "type": "string"
+    },
+    {
+      "key": "facturaId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "lineaFacturaId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "limit",
+      "value": "50",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "value",
+        "value": "{{apiToken}}",
+        "type": "string"
+      },
+      {
+        "key": "key",
+        "value": "X-Auth-Token",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Introducción y recursos base",
+      "description": "Solicitudes para descubrir los recursos publicados por la API y verificar el acceso con la API key.",
+      "item": [
+        {
+          "name": "Listar recursos disponibles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}"
+              ]
+            },
+            "description": "Devuelve el listado de recursos genéricos y personalizados expuestos por FacturaScripts. Corresponde al controlador ApiRoot."
+          },
+          "response": []
+        },
+        {
+          "name": "Recuperar metadatos de recursos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/{{resource}}/schema",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "{{resource}}",
+                "schema"
+              ]
+            },
+            "description": "Obtiene la definición de campos del modelo indicado. Útil para conocer qué atributos acepta cada recurso antes de crear o actualizar registros."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Operaciones de modelos genéricos",
+      "description": "Peticiones CRUD estándar proporcionadas por APIModel para cualquier modelo definido en Dinamic/Model.",
+      "item": [
+        {
+          "name": "Listar registros de un modelo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/{{resource}}?limit={{limit}}&offset=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "{{resource}}"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "{{limit}}"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Lista registros del recurso indicado con paginación mediante los parámetros limit y offset."
+          },
+          "response": []
+        },
+        {
+          "name": "Filtrar clientes por nombre",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/clientes?filter[nombre_like]=Acme&limit={{limit}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "clientes"
+              ],
+              "query": [
+                {
+                  "key": "filter[nombre_like]",
+                  "value": "Acme"
+                },
+                {
+                  "key": "limit",
+                  "value": "{{limit}}"
+                }
+              ]
+            },
+            "description": "Ejemplo de filtrado usando sufijos como _like para búsquedas parciales. Se puede combinar con otros operadores (_gt, _lt, _null, etc.)."
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener un registro por código",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/{{resource}}/{{resourceCode}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "{{resource}}",
+                "{{resourceCode}}"
+              ]
+            },
+            "description": "Recupera un registro concreto a partir de su identificador primario."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "codcliente",
+                  "value": "{{clienteCodigo}}",
+                  "type": "text",
+                  "description": "Código único del cliente."
+                },
+                {
+                  "key": "nombre",
+                  "value": "Cliente creado desde API",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "cliente.api@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "telefono1",
+                  "value": "+34111222333",
+                  "type": "text"
+                },
+                {
+                  "key": "cifnif",
+                  "value": "B12345678",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/clientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "clientes"
+              ]
+            },
+            "description": "Crea un nuevo cliente utilizando los campos principales del modelo. El cuerpo se envía como application/x-www-form-urlencoded."
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar datos de un cliente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "codcliente",
+                  "value": "{{clienteCodigo}}",
+                  "type": "text"
+                },
+                {
+                  "key": "observaciones",
+                  "value": "Actualizado desde Postman",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/clientes/{{clienteCodigo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "clientes",
+                "{{clienteCodigo}}"
+              ]
+            },
+            "description": "Actualiza campos del cliente indicado. Para PUT y PATCH la API espera los datos en formato application/x-www-form-urlencoded."
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar un cliente",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/clientes/{{clienteCodigo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "clientes",
+                "{{clienteCodigo}}"
+              ]
+            },
+            "description": "Elimina el registro del cliente indicado si la API key cuenta con permisos de delete."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Documentos de venta",
+      "description": "Endpoints específicos para trabajar con facturas de cliente: creación, rectificación y exportación.",
+      "item": [
+        {
+          "name": "Crear factura de cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "codcliente",
+                  "value": "{{clienteCodigo}}",
+                  "type": "text",
+                  "description": "Código del cliente al que se factura."
+                },
+                {
+                  "key": "codalmacen",
+                  "value": "ALG",
+                  "type": "text",
+                  "description": "Almacén opcional para la factura."
+                },
+                {
+                  "key": "fecha",
+                  "value": "2025-01-15",
+                  "type": "text"
+                },
+                {
+                  "key": "hora",
+                  "value": "10:00:00",
+                  "type": "text"
+                },
+                {
+                  "key": "pagada",
+                  "value": "0",
+                  "type": "text",
+                  "description": "Marcar 1 para registrar la factura como pagada."
+                },
+                {
+                  "key": "lineas",
+                  "value": "[{\"descripcion\": \"Servicio de consultoría\", \"cantidad\": 1, \"pvpunitario\": 100, \"codimpuesto\": \"IVA21\"}]",
+                  "type": "text",
+                  "description": "Listado de líneas en formato JSON."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/crearFacturaCliente",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "crearFacturaCliente"
+              ]
+            },
+            "description": "Crea una factura completa utilizando el helper ApiCreateFacturaCliente. Las líneas se envían como JSON en el campo lineas."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear factura rectificativa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "idfactura",
+                  "value": "{{facturaId}}",
+                  "type": "text",
+                  "description": "Identificador interno de la factura original."
+                },
+                {
+                  "key": "fecha",
+                  "value": "2025-01-20",
+                  "type": "text"
+                },
+                {
+                  "key": "hora",
+                  "value": "12:00:00",
+                  "type": "text"
+                },
+                {
+                  "key": "codserie",
+                  "value": "R",
+                  "type": "text",
+                  "description": "Serie a emplear para la factura rectificativa."
+                },
+                {
+                  "key": "observaciones",
+                  "value": "Rectificación generada desde la API",
+                  "type": "text"
+                },
+                {
+                  "key": "nick",
+                  "value": "api-user",
+                  "type": "text"
+                },
+                {
+                  "key": "refund_{{lineaFacturaId}}",
+                  "value": "1",
+                  "type": "text",
+                  "description": "Cantidad a rectificar de la línea indicada."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/crearFacturaRectificativaCliente",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "crearFacturaRectificativaCliente"
+              ]
+            },
+            "description": "Genera una factura rectificativa tomando como base la factura especificada. Incluye parámetros refund_<idlinea> para marcar qué unidades se abonan."
+          },
+          "response": []
+        },
+        {
+          "name": "Exportar factura de cliente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/pdf"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/exportarFacturaCliente/{{facturaId}}?type=PDF&format=0&lang=es_ES",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "exportarFacturaCliente",
+                "{{facturaId}}"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "PDF"
+                },
+                {
+                  "key": "format",
+                  "value": "0"
+                },
+                {
+                  "key": "lang",
+                  "value": "es_ES"
+                }
+              ]
+            },
+            "description": "Devuelve el documento de la factura indicada en el formato solicitado (PDF, ODT, etc.)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Gestión de archivos",
+      "description": "Carga de ficheros vinculados mediante ApiUploadFiles.",
+      "item": [
+        {
+          "name": "Subir ficheros a MyFiles",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files[]",
+                  "type": "file",
+                  "src": "",
+                  "description": "Seleccione uno o varios ficheros a subir."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/uploadFiles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "uploadFiles"
+              ]
+            },
+            "description": "Carga archivos en la carpeta MyFiles y devuelve los registros creados en la tabla AttachedFile. Se rechazan ficheros PHP por seguridad."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
