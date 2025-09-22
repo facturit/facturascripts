@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : gd_company_cfg.xml
+    Description:
+        Structure for the gd_company_cfg table used by the Google Drive Sync plugin.
+-->
+<table>
+    <column>
+        <name>id</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>idempresa</name>
+        <type>integer</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>credentials_mode</name>
+        <type>character varying(20)</type>
+        <null>NO</null>
+        <default>'service'</default>
+    </column>
+    <column>
+        <name>credentials_json</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>token_json</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>token_expires_at</name>
+        <type>timestamp</type>
+    </column>
+    <column>
+        <name>token_updated_at</name>
+        <type>timestamp</type>
+    </column>
+    <column>
+        <name>shared_drive_id</name>
+        <type>character varying(64)</type>
+    </column>
+    <column>
+        <name>root_folder_id</name>
+        <type>character varying(128)</type>
+    </column>
+    <column>
+        <name>root_folder_path</name>
+        <type>character varying(255)</type>
+    </column>
+    <column>
+        <name>path_template</name>
+        <type>character varying(255)</type>
+        <null>NO</null>
+        <default>'{year}/{doctype}/{third.nif} - {third.name}'</default>
+    </column>
+    <column>
+        <name>filename_template</name>
+        <type>character varying(255)</type>
+        <null>NO</null>
+        <default>'{date:YYYYMMDD}-{doctype}-{doc.serie}-{doc.number}-{third.nif}-{third.name}.pdf'</default>
+    </column>
+    <column>
+        <name>upload_pdf</name>
+        <type>boolean</type>
+        <null>NO</null>
+        <default>true</default>
+    </column>
+    <column>
+        <name>auto_share</name>
+        <type>boolean</type>
+        <null>NO</null>
+        <default>false</default>
+    </column>
+    <column>
+        <name>share_emails</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>delete_on_remove</name>
+        <type>boolean</type>
+        <null>NO</null>
+        <default>false</default>
+    </column>
+    <column>
+        <name>reverse_sync</name>
+        <type>boolean</type>
+        <null>NO</null>
+        <default>false</default>
+    </column>
+    <column>
+        <name>anonymize_routes</name>
+        <type>boolean</type>
+        <null>NO</null>
+        <default>false</default>
+    </column>
+    <column>
+        <name>excluded_models</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>created_at</name>
+        <type>timestamp</type>
+        <null>NO</null>
+        <default>CURRENT_TIMESTAMP</default>
+    </column>
+    <column>
+        <name>updated_at</name>
+        <type>timestamp</type>
+        <null>NO</null>
+        <default>CURRENT_TIMESTAMP</default>
+    </column>
+    <constraint>
+        <name>gd_company_cfg_pkey</name>
+        <type>PRIMARY KEY (id)</type>
+    </constraint>
+    <constraint>
+        <name>gd_company_cfg_unique_company</name>
+        <type>UNIQUE (idempresa)</type>
+    </constraint>
+    <constraint>
+        <name>ca_gd_company_cfg_idempresa</name>
+        <type>FOREIGN KEY (idempresa) REFERENCES empresas (idempresa) ON DELETE CASCADE ON UPDATE CASCADE</type>
+    </constraint>
+</table>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : gd_queue.xml
+    Description:
+        Structure for the gd_queue table used by the Google Drive Sync plugin.
+-->
+<table>
+    <column>
+        <name>id</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>idempresa</name>
+        <type>integer</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>model</name>
+        <type>character varying(60)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>iddocument</name>
+        <type>integer</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>action</name>
+        <type>character varying(20)</type>
+        <null>NO</null>
+        <default>'sync'</default>
+    </column>
+    <column>
+        <name>state</name>
+        <type>character varying(20)</type>
+        <null>NO</null>
+        <default>'queued'</default>
+    </column>
+    <column>
+        <name>priority</name>
+        <type>smallint</type>
+        <null>NO</null>
+        <default>5</default>
+    </column>
+    <column>
+        <name>attempts</name>
+        <type>integer</type>
+        <null>NO</null>
+        <default>0</default>
+    </column>
+    <column>
+        <name>max_attempts</name>
+        <type>integer</type>
+        <null>NO</null>
+        <default>5</default>
+    </column>
+    <column>
+        <name>available_at</name>
+        <type>timestamp</type>
+    </column>
+    <column>
+        <name>locked_at</name>
+        <type>timestamp</type>
+    </column>
+    <column>
+        <name>last_error</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>google_file_id</name>
+        <type>character varying(128)</type>
+    </column>
+    <column>
+        <name>payload</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>created_at</name>
+        <type>timestamp</type>
+        <null>NO</null>
+        <default>CURRENT_TIMESTAMP</default>
+    </column>
+    <column>
+        <name>updated_at</name>
+        <type>timestamp</type>
+        <null>NO</null>
+        <default>CURRENT_TIMESTAMP</default>
+    </column>
+    <constraint>
+        <name>gd_queue_pkey</name>
+        <type>PRIMARY KEY (id)</type>
+    </constraint>
+    <constraint>
+        <name>ca_gd_queue_idempresa</name>
+        <type>FOREIGN KEY (idempresa) REFERENCES empresas (idempresa) ON DELETE CASCADE ON UPDATE CASCADE</type>
+    </constraint>
+    <index>
+        <name>gd_queue_idx_doc</name>
+        <columns>model,iddocument,idempresa</columns>
+    </index>
+    <index>
+        <name>gd_queue_idx_state</name>
+        <columns>state,available_at</columns>
+    </index>
+    <index>
+        <name>gd_queue_idx_priority</name>
+        <columns>priority,created_at</columns>
+    </index>
+</table>

@@ -1,0 +1,148 @@
+{% set currentView = fsc.getCurrentView() %}
+{% set selectedCompany = fsc.getSelectedCompanyId() %}
+{% set config = fsc.getCompanyConfig(selectedCompany) %}
+
+<form method="get" class="row g-3 align-items-end mb-4">
+    <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+    <div class="col-md-4">
+        <label class="form-label" for="configCompany">{{ 'Company'|trans }}</label>
+        <select id="configCompany" name="company_id" class="form-select" onchange="this.form.submit()">
+            {% for id, name in fsc.getCompanyOptions() %}
+                <option value="{{ id }}" {{ selectedCompany == id ? 'selected' }}>{{ name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</form>
+
+<form method="post" class="card">
+    {{ formToken() }}
+    <input type="hidden" name="action" value="save-config"/>
+    <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+    <input type="hidden" name="company_id" value="{{ selectedCompany }}"/>
+
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h5 class="card-title mb-0">{{ 'Configuration'|trans }}</h5>
+        <div class="text-muted small">{{ 'Fields marked with * are required.'|trans }}</div>
+    </div>
+
+    <div class="card-body">
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <h6 class="text-uppercase text-muted">{{ 'Credentials'|trans }}</h6>
+                <div class="mb-3">
+                    <label class="form-label d-block">{{ 'Mode'|trans }}</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" id="modeService" name="credentials_mode" value="service" {{ config.credentials_mode == 'service' ? 'checked' }} />
+                        <label class="form-check-label" for="modeService">{{ 'Service account'|trans }}</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" id="modeOAuth" name="credentials_mode" value="oauth" {{ config.credentials_mode == 'oauth' ? 'checked' }} />
+                        <label class="form-check-label" for="modeOAuth">{{ 'OAuth 2.0'|trans }}</label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="credentialsJson">{{ 'Credentials JSON'|trans }} *</label>
+                    <textarea id="credentialsJson" name="credentials_json" class="form-control" rows="6" placeholder="{\n  \"type\": \"service_account\",\n  ...\n}">{{ config.credentials_json }}</textarea>
+                    <div class="form-text">{{ 'Paste the JSON credentials generated in Google Cloud Console.'|trans }}</div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="sharedDriveId">{{ 'Shared Drive ID (optional)'|trans }}</label>
+                        <input type="text" id="sharedDriveId" name="shared_drive_id" class="form-control" value="{{ config.shared_drive_id }}" />
+                        <div class="form-text">{{ 'Leave empty to use My Drive.'|trans }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="rootFolderId">{{ 'Root folder ID (optional)'|trans }}</label>
+                        <input type="text" id="rootFolderId" name="root_folder_id" class="form-control" value="{{ config.root_folder_id }}" />
+                        <div class="form-text">{{ 'If empty, the plugin will create it automatically.'|trans }}</div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="rootFolderPath">{{ 'Root folder path (optional)'|trans }}</label>
+                    <input type="text" id="rootFolderPath" name="root_folder_path" class="form-control" value="{{ config.root_folder_path }}" placeholder="{{ '{company.name}/Documents' }}" />
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <h6 class="text-uppercase text-muted">{{ 'Templates'|trans }}</h6>
+                <div class="mb-3">
+                    <label class="form-label" for="pathTemplate">{{ 'Path template'|trans }}</label>
+                    <input type="text" id="pathTemplate" name="path_template" class="form-control" value="{{ config.path_template }}" />
+                    <div class="form-text">{{ 'Available placeholders: {year}, {doctype}, {third.nif}, {third.name}, {company.name}'|trans }}</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="filenameTemplate">{{ 'Filename template'|trans }}</label>
+                    <input type="text" id="filenameTemplate" name="filename_template" class="form-control" value="{{ config.filename_template }}" />
+                    <div class="form-text">{{ 'Available placeholders: {date}, {doc.number}, {doc.serie}, {doctype}, {third.nif}, {third.name}'|trans }}</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="shareEmails">{{ 'Emails to share (comma separated)'|trans }}</label>
+                    <input type="text" id="shareEmails" name="share_emails" class="form-control" value="{{ config.share_emails }}" />
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="bulkLimitDisplay">{{ 'Default bulk limit'|trans }}</label>
+                        <input type="number" id="bulkLimitDisplay" class="form-control" value="100" disabled />
+                        <div class="form-text">{{ 'Adjustable in the wizard per request.'|trans }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="testConnection">{{ 'Connection test'|trans }}</label>
+                        <button type="button" id="testConnection" class="btn btn-outline-secondary w-100" disabled>{{ 'Coming soon'|trans }}</button>
+                        <div class="form-text">{{ 'The connection test will be available in a future version.'|trans }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4"/>
+
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="uploadPdf" name="upload_pdf" {{ config.upload_pdf ? 'checked' }} />
+                    <label class="form-check-label" for="uploadPdf">{{ 'Upload printable PDF'|trans }}</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="autoShare" name="auto_share" {{ config.auto_share ? 'checked' }} />
+                    <label class="form-check-label" for="autoShare">{{ 'Share automatically'|trans }}</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="deleteOnRemove" name="delete_on_remove" {{ config.delete_on_remove ? 'checked' }} />
+                    <label class="form-check-label" for="deleteOnRemove">{{ 'Move to trash on delete'|trans }}</label>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="reverseSync" name="reverse_sync" {{ config.reverse_sync ? 'checked' }} />
+                    <label class="form-check-label" for="reverseSync">{{ 'Enable reverse sync'|trans }}</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="anonymizeRoutes" name="anonymize_routes" {{ config.anonymize_routes ? 'checked' }} />
+                    <label class="form-check-label" for="anonymizeRoutes">{{ 'Anonymize names in routes'|trans }}</label>
+                </div>
+                <div class="mb-3 mt-3">
+                    <label class="form-label" for="excludedModels">{{ 'Excluded document types'|trans }}</label>
+                    <select id="excludedModels" name="excluded_models[]" class="form-select" multiple size="6">
+                        {% for model in fsc.getAvailableModels() %}
+                            <option value="{{ model }}" {{ model in config.getExcludedModels() ? 'selected' }}>{{ model|trans }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">{{ 'Selected document types will be skipped and never uploaded.'|trans }}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="rootPathExamples">{{ 'Examples'|trans }}</label>
+                <div id="rootPathExamples" class="small text-muted">
+                    <div>{{ 'Path example:'|trans }} <code>{{ '2024/factura/ES12345678 - Example S.L.' }}</code></div>
+                    <div>{{ 'Filename example:'|trans }} <code>{{ '20240501-factura-A-123-ES12345678-Example.pdf' }}</code></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-footer text-end">
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-save me-1"></i>{{ 'Save'|trans }}
+        </button>
+    </div>
+</form>

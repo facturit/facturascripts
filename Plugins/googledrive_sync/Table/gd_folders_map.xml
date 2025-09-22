@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : gd_folders_map.xml
+    Description:
+        Structure for the gd_folders_map table used by the Google Drive Sync plugin.
+-->
+<table>
+    <column>
+        <name>id</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>idempresa</name>
+        <type>integer</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>resolved_path</name>
+        <type>character varying(255)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>path_hash</name>
+        <type>character varying(64)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>folder_id</name>
+        <type>character varying(128)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>created_at</name>
+        <type>timestamp</type>
+        <null>NO</null>
+        <default>CURRENT_TIMESTAMP</default>
+    </column>
+    <column>
+        <name>updated_at</name>
+        <type>timestamp</type>
+        <null>NO</null>
+        <default>CURRENT_TIMESTAMP</default>
+    </column>
+    <constraint>
+        <name>gd_folders_map_pkey</name>
+        <type>PRIMARY KEY (id)</type>
+    </constraint>
+    <constraint>
+        <name>gd_folders_map_unique_path</name>
+        <type>UNIQUE (idempresa,resolved_path)</type>
+    </constraint>
+    <constraint>
+        <name>ca_gd_folders_map_idempresa</name>
+        <type>FOREIGN KEY (idempresa) REFERENCES empresas (idempresa) ON DELETE CASCADE ON UPDATE CASCADE</type>
+    </constraint>
+    <index>
+        <name>gd_folders_map_idx_folder</name>
+        <columns>folder_id</columns>
+    </index>
+    <index>
+        <name>gd_folders_map_idx_hash</name>
+        <columns>path_hash</columns>
+    </index>
+</table>
