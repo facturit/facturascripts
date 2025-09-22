@@ -1,0 +1,909 @@
+{
+  "info": {
+    "_postman_id": "f0c1b2b4-8c82-4e19-81e9-9a60c5ff0001",
+    "name": "FacturaScripts 2025 API",
+    "description": "Colección de endpoints REST para la API v3 de FacturaScripts 2025. Incluye ejemplos de uso con encabezados de autenticación por token, filtros, paginación y operaciones especializadas como la creación de documentos o la gestión de archivos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "value",
+        "value": "{{api_token}}",
+        "type": "string"
+      },
+      {
+        "key": "key",
+        "value": "X-Auth-Token",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Introducción y autenticación",
+      "description": "Puntos de partida para descubrir los recursos disponibles y validar que el token configurado concede acceso a la API REST.",
+      "item": [
+        {
+          "name": "Ver recursos expuestos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/3",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3"
+              ]
+            },
+            "description": "Devuelve la lista de recursos disponibles (modelos y endpoints especializados). Basado en el controlador ApiRoot, que expone los recursos registrados en el núcleo y en los plugins."
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener esquema de clientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/3/clientes/schema",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "clientes",
+                "schema"
+              ]
+            },
+            "description": "Recupera el esquema del modelo Cliente (tipos de campo, valores por defecto y si admiten nulos). Útil para preparar cargas de datos antes de crear o actualizar clientes."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Clientes",
+      "description": "Operaciones CRUD estándar sobre el recurso clientes. El modelo aplica validaciones como la obligatoriedad del nombre y el control de duplicados por código.",
+      "item": [
+        {
+          "name": "Listar clientes (paginación y filtros)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/3/clientes?limit=25&offset=0&filter[debaja]=0&sort[nombre]=ASC",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "clientes"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "25"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "filter[debaja]",
+                  "value": "0"
+                },
+                {
+                  "key": "sort[nombre]",
+                  "value": "ASC"
+                }
+              ]
+            },
+            "description": "Listado paginado de clientes activos. Se utilizan los parámetros \"filter\", \"sort\", \"limit\" y \"offset\" que procesa el recurso APIModel para generar las cláusulas WHERE y ORDER BY correspondientes."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "codcliente",
+                  "value": "{{cliente_codigo}}",
+                  "description": "Código único del cliente (alfanumérico hasta 10 caracteres)."
+                },
+                {
+                  "key": "nombre",
+                  "value": "Cliente API",
+                  "description": "Nombre comercial obligatorio del cliente."
+                },
+                {
+                  "key": "razonsocial",
+                  "value": "Cliente API",
+                  "description": "Razón social. Si se omite, el modelo copia el nombre."
+                },
+                {
+                  "key": "cifnif",
+                  "value": "B12345678",
+                  "description": "Identificador fiscal del cliente."
+                },
+                {
+                  "key": "email",
+                  "value": "cliente@example.com",
+                  "description": "Correo electrónico principal."
+                },
+                {
+                  "key": "telefono1",
+                  "value": "+34 911223344",
+                  "description": "Teléfono de contacto."
+                },
+                {
+                  "key": "observaciones",
+                  "value": "Creado desde Postman",
+                  "description": "Texto libre de observaciones."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/3/clientes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "clientes"
+              ]
+            },
+            "description": "Crea un nuevo cliente. El endpoint valida que el código no exista previamente y que los campos obligatorios (como nombre) estén informados."
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar cliente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "codcliente",
+                  "value": "{{cliente_codigo}}",
+                  "description": "Código del cliente a actualizar."
+                },
+                {
+                  "key": "nombre",
+                  "value": "Cliente API actualizado",
+                  "description": "Nuevo nombre visible."
+                },
+                {
+                  "key": "telefono1",
+                  "value": "+34 911223355",
+                  "description": "Ejemplo de cambio de teléfono."
+                },
+                {
+                  "key": "observaciones",
+                  "value": "Datos revisados desde la API",
+                  "description": "Notas internas tras la actualización."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/3/clientes/{{cliente_codigo}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "clientes",
+                "{{cliente_codigo}}"
+              ]
+            },
+            "description": "Actualiza un cliente existente. Si el código no se encuentra se devuelve un 404; los cambios válidos se guardan y el recurso responde con los datos actualizados."
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar cliente",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/3/clientes/{{cliente_codigo}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "clientes",
+                "{{cliente_codigo}}"
+              ]
+            },
+            "description": "Elimina el cliente indicado si existe. El recurso devuelve un mensaje de confirmación en caso de borrado correcto."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Productos",
+      "description": "Gestión básica del catálogo de productos, incluyendo creación, actualización y filtrado por referencia.",
+      "item": [
+        {
+          "name": "Listar productos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/3/productos?limit=20&sort[referencia]=ASC",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "productos"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "sort[referencia]",
+                  "value": "ASC"
+                }
+              ]
+            },
+            "description": "Obtiene un listado de productos ordenado por referencia. Se pueden añadir filtros adicionales (por ejemplo filter[codfamilia]) siguiendo las reglas del recurso APIModel."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear producto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "referencia",
+                  "value": "API-001",
+                  "description": "Referencia o SKU del artículo."
+                },
+                {
+                  "key": "descripcion",
+                  "value": "Producto creado desde la API",
+                  "description": "Descripción corta."
+                },
+                {
+                  "key": "precio",
+                  "value": "120",
+                  "description": "Precio base sin impuestos."
+                },
+                {
+                  "key": "codimpuesto",
+                  "value": "IVA21",
+                  "description": "Código de impuesto asociado al producto."
+                },
+                {
+                  "key": "sevende",
+                  "value": "1",
+                  "description": "Marcar en 1 para permitir ventas."
+                },
+                {
+                  "key": "secompra",
+                  "value": "1",
+                  "description": "Marcar en 1 si también se compra a proveedores."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/3/productos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "productos"
+              ]
+            },
+            "description": "Da de alta un nuevo producto. El modelo establece valores por defecto como la fecha de alta y permite controlar impuestos mediante el campo codimpuesto."
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar producto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "idproducto",
+                  "value": "{{producto_id}}",
+                  "description": "Identificador interno del producto."
+                },
+                {
+                  "key": "descripcion",
+                  "value": "Descripción actualizada desde la API",
+                  "description": "Nuevo texto descriptivo."
+                },
+                {
+                  "key": "precio",
+                  "value": "135",
+                  "description": "Precio actualizado."
+                },
+                {
+                  "key": "publico",
+                  "value": "1",
+                  "description": "Marcar en 1 para indicar que el producto es público/sincronizable."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/3/productos/{{producto_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "productos",
+                "{{producto_id}}"
+              ]
+            },
+            "description": "Modifica un producto existente. Si el id no corresponde a un registro válido la API responde con 404."
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar producto",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/3/productos/{{producto_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "productos",
+                "{{producto_id}}"
+              ]
+            },
+            "description": "Elimina el producto indicado, devolviendo confirmación en caso de éxito."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Documentos de venta",
+      "description": "Endpoints especializados para crear documentos comerciales, exportarlos y gestionar su estado de cobro.",
+      "item": [
+        {
+          "name": "Crear factura de cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "codcliente",
+                  "value": "{{cliente_codigo}}",
+                  "description": "Código del cliente para asignar el sujeto del documento."
+                },
+                {
+                  "key": "codserie",
+                  "value": "A",
+                  "description": "Serie de facturación a utilizar."
+                },
+                {
+                  "key": "codalmacen",
+                  "value": "1",
+                  "description": "Código de almacén desde el que se sirven las líneas."
+                },
+                {
+                  "key": "fecha",
+                  "value": "{{document_date}}",
+                  "description": "Fecha del documento en formato AAAA-MM-DD."
+                },
+                {
+                  "key": "hora",
+                  "value": "10:00",
+                  "description": "Hora opcional del documento (HH:MM)."
+                },
+                {
+                  "key": "observaciones",
+                  "value": "Generada desde Postman",
+                  "description": "Notas que se guardarán en la factura."
+                },
+                {
+                  "key": "lineas",
+                  "value": "[{\"descripcion\":\"Servicio de consultoría\",\"cantidad\":2,\"pvpunitario\":50,\"codimpuesto\":\"IVA21\"}]",
+                  "description": "JSON con el detalle de líneas. Cada línea puede incluir referencia, cantidad, precio, descuentos y códigos de impuestos."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/3/crearFacturaCliente",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "crearFacturaCliente"
+              ]
+            },
+            "description": "Crea una factura de cliente asignando sujeto, almacén, fecha y líneas. El endpoint valida la existencia del cliente, calcula totales y devuelve el documento junto con las líneas generadas."
+          },
+          "response": []
+        },
+        {
+          "name": "Marcar factura como pagada",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "pagada",
+                  "value": "true",
+                  "description": "Indica si la factura debe marcarse como pagada (true) o pendiente (false)."
+                },
+                {
+                  "key": "fechapago",
+                  "value": "{{document_date}}",
+                  "description": "Fecha de pago para registrar en los recibos."
+                },
+                {
+                  "key": "codpago",
+                  "value": "CONT",
+                  "description": "Código de forma de pago aplicado al cobro."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/3/pagarFacturaCliente/{{factura_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "pagarFacturaCliente",
+                "{{factura_id}}"
+              ]
+            },
+            "description": "Actualiza el estado de cobro de una factura de cliente. Marca los recibos asociados como pagados o pendientes según el valor de \"pagada\"."
+          },
+          "response": []
+        },
+        {
+          "name": "Exportar factura a PDF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/3/exportarFacturaCliente/{{factura_id}}?type=PDF&format=0",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "exportarFacturaCliente",
+                "{{factura_id}}"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "PDF"
+                },
+                {
+                  "key": "format",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Genera la exportación del documento en PDF (u otros formatos soportados) utilizando el gestor de exportaciones integrado."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear factura rectificativa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "idfactura",
+                  "value": "{{factura_id}}",
+                  "description": "Identificador de la factura original que se rectifica."
+                },
+                {
+                  "key": "fecha",
+                  "value": "{{document_date}}",
+                  "description": "Fecha de la factura rectificativa."
+                },
+                {
+                  "key": "hora",
+                  "value": "11:00",
+                  "description": "Hora opcional."
+                },
+                {
+                  "key": "codserie",
+                  "value": "A",
+                  "description": "Serie a emplear en la rectificativa."
+                },
+                {
+                  "key": "observaciones",
+                  "value": "Rectificación parcial desde API",
+                  "description": "Notas internas."
+                },
+                {
+                  "key": "refund_{{factura_linea_id}}",
+                  "value": "1",
+                  "description": "Cantidad a rectificar para una línea concreta (usar el id de línea real). Si no se incluyen cantidades se rectifican todas las líneas."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/3/crearFacturaRectificativaCliente",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "crearFacturaRectificativaCliente"
+              ]
+            },
+            "description": "Genera una factura rectificativa a partir de otra existente. Permite indicar qué líneas se abonan y ajusta los totales automáticamente."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Archivos y multimedia",
+      "description": "Gestión de ficheros adjuntos genéricos y recursos multimedia asociados a productos.",
+      "item": [
+        {
+          "name": "Listar archivos adjuntos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/3/attachedfiles?limit=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "attachedfiles"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Devuelve los archivos adjuntos registrados, incluyendo URLs temporales y permanentes para su descarga."
+          },
+          "response": []
+        },
+        {
+          "name": "Subir archivo adjunto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/ruta/al/archivo.pdf",
+                  "description": "Archivo a subir. Los ficheros .php son ignorados por seguridad."
+                },
+                {
+                  "key": "descripcion",
+                  "value": "Documento adjunto subido desde Postman",
+                  "description": "Descripción opcional almacenada junto al adjunto."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/3/attachedfiles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "attachedfiles"
+              ]
+            },
+            "description": "Carga un nuevo archivo en la carpeta MyFiles y crea el registro asociado."
+          },
+          "response": []
+        },
+        {
+          "name": "Descargar archivo adjunto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/3/attachedfiles/{{attachedfile_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "attachedfiles",
+                "{{attachedfile_id}}"
+              ]
+            },
+            "description": "Recupera los metadatos del archivo y proporciona enlaces de descarga."
+          },
+          "response": []
+        },
+        {
+          "name": "Subida múltiple (uploadFiles)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": "/ruta/a/imagen1.png",
+                  "description": "Primer archivo a subir en lote."
+                },
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": "/ruta/a/imagen2.png",
+                  "description": "Segundo archivo del lote."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/3/uploadFiles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "uploadFiles"
+              ]
+            },
+            "description": "Permite subir varios archivos en una sola petición. El servicio ignora ficheros inválidos o con extensión PHP y devuelve la lista de adjuntos creados."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar imágenes de producto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/3/productoimagenes?filter[idproducto]={{producto_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "productoimagenes"
+              ],
+              "query": [
+                {
+                  "key": "filter[idproducto]",
+                  "value": "{{producto_id}}"
+                }
+              ]
+            },
+            "description": "Lista las imágenes asociadas a un producto concreto, incluyendo URLs directas de descarga."
+          },
+          "response": []
+        },
+        {
+          "name": "Subir imagen de producto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "idproducto",
+                  "value": "{{producto_id}}",
+                  "description": "Producto al que se vincula la imagen."
+                },
+                {
+                  "key": "descripcion",
+                  "value": "Imagen principal subida desde API",
+                  "description": "Texto descriptivo de la imagen."
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/ruta/a/imagen.png",
+                  "description": "Archivo de imagen a almacenar."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/3/productoimagenes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "productoimagenes"
+              ]
+            },
+            "description": "Sube una imagen y crea el registro correspondiente. El servicio devuelve confirmación y los datos guardados."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Plugins y utilidades",
+      "description": "Consultas auxiliares sobre el estado del sistema y los plugins instalados.",
+      "item": [
+        {
+          "name": "Listar plugins instalados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/3/plugins",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "3",
+                "plugins"
+              ]
+            },
+            "description": "Devuelve el listado de plugins detectados por el núcleo, permitiendo aplicar filtros y ordenaciones mediante los parámetros estándar de la API."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "api_token",
+      "value": "changeme",
+      "type": "string"
+    },
+    {
+      "key": "cliente_codigo",
+      "value": "C0001",
+      "type": "string"
+    },
+    {
+      "key": "producto_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "factura_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "factura_linea_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "attachedfile_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "document_date",
+      "value": "2025-01-15",
+      "type": "string"
+    }
+  ]
+}
