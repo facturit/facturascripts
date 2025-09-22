@@ -20,6 +20,7 @@
     "ext-bcmath": "*",
     "ext-curl": "*",
     "ext-dom": "*",
+    "ext-openssl": "*",
     "ext-fileinfo": "*",
     "ext-gd": "*",
     "ext-json": "*",
@@ -35,7 +36,8 @@
     "tavo1987/ec-validador-cedula-ruc": "1.0.2",
     "globalcitizen/php-iban": "4.*",
     "pragmarx/google2fa": "^8.0",
-    "chillerlan/php-qrcode": "^4.0"
+    "chillerlan/php-qrcode": "^4.0",
+    "google/apiclient": "^2.15"
   },
   "require-dev": {
     "phpunit/phpunit": "9.*",

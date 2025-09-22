@@ -8,6 +8,8 @@ se vincula con su identificador en la nube, ruta personalizada y estado de sincr
 
 - **Cola de trabajos con reintentos**: cada documento se envía a `gd_queue` y el cron `Cron/runQueue.php`
   procesa los trabajos liberando bloqueos obsoletos y aplicando backoff exponencial ante errores.
+- **Integración real con Google Drive**: el plugin utiliza el SDK oficial (`google/apiclient`) y admite tanto
+  cuentas de servicio como credenciales OAuth 2.0, con refresco automático de tokens y almacenamiento cifrado.
 - **Plantillas de rutas y nombres**: se admiten `placeholders` como `{year}`, `{doctype}`, `{third.nif}` o
   `{date:YYYYMMDD}` para construir la jerarquía de carpetas y el nombre del fichero PDF.
 - **Auditoría detallada**: la tabla `gd_log` almacena acción, resultado, usuario, tamaño, duración y
@@ -24,16 +26,29 @@ se vincula con su identificador en la nube, ruta personalizada y estado de sincr
 ## Instalación
 
 1. Copia la carpeta `Plugins/googledrive_sync` en tu instalación de FacturaScripts.
-2. Activa el plugin desde el panel de administración y ejecuta el asistente de actualización para crear las tablas
+2. Ejecuta `composer install` (o `composer update`) para descargar la dependencia `google/apiclient` junto con sus
+   requisitos y asegúrate de tener habilitada la extensión `ext-openssl` en PHP.
+3. Activa el plugin desde el panel de administración y ejecuta el asistente de actualización para crear las tablas
    (`gd_company_cfg`, `gd_file_map`, `gd_folders_map`, `gd_queue`, `gd_log`).
-3. Configura las credenciales en la pestaña **Configuración** del panel del plugin.
+4. Configura las credenciales en la pestaña **Configuración** del panel del plugin.
+
+## Credenciales y seguridad
+
+- **Cuentas de servicio**: genera el JSON desde Google Cloud Console, comparte la carpeta raíz con la cuenta de
+  servicio y pégalo en el campo *Credentials JSON*. El plugin usará ese JSON para firmar tokens JWT en cada ejecución.
+- **OAuth 2.0**: introduce `client_id`, `client_secret` y un `refresh_token` válido en el JSON; el plugin almacenará
+  automáticamente los `access_token` obtenidos de Google, renovándolos cuando caduquen.
+- **Cifrado**: tanto el JSON de credenciales como los tokens se guardan cifrados en la base de datos con una clave
+  simétrica propia del plugin. La clave se genera la primera vez que se guarda la configuración y se almacena en la
+  tabla de `settings` de FacturaScripts.
 
 ## Configuración por empresa
 
 En la pestaña de configuración selecciona la empresa y completa:
 
 - **Credenciales**: modo *Cuenta de servicio* (recomendado) u *OAuth 2.0*, JSON de credenciales, identificador de
-  Shared Drive y carpeta raíz (opcional). El botón de prueba de conexión aparecerá en futuras versiones.
+  Shared Drive y carpeta raíz (opcional). El plugin valida que exista `client_email` y `private_key` (cuenta de servicio)
+  o `client_id`, `client_secret` y `refresh_token` (OAuth) antes de permitir la sincronización.
 - **Plantillas**: define ruta y nombre usando los placeholders documentados. El plugin genera automáticamente la
   jerarquía de carpetas y fuerza la extensión `.pdf`.
 - **Compartición**: activa “Compartir automáticamente” para enviar el archivo en solo lectura al email del tercero
@@ -58,8 +73,9 @@ El script libera bloqueos, procesa trabajos y deja un resumen en el log (`google
 
 ## Pruebas
 
-Se incluyen pruebas básicas bajo `Plugins/googledrive_sync/Test/` para cubrir la resolución de rutas, la configuración
-de compartición y la lógica principal del cliente simulado. Ejecútalas con:
+Se incluyen pruebas básicas bajo `Plugins/googledrive_sync/Test/` para cubrir la resolución de rutas y utilidades del
+plugin. Las pruebas de integración del cliente de Google Drive están marcadas como *skipped* porque requieren
+credenciales reales.
 
 ```
 composer install

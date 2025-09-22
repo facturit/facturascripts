@@ -372,7 +372,8 @@ class SyncWorker
         $map->save();
 
         $shareWith = $config->shareRecipients($document);
-        $result = $client->upload($map, $folderId, $map->filename, $render['content'], $shareWith);
+        $mimeType = $render['mime_type'] ?? 'application/pdf';
+        $result = $client->upload($map, $folderId, $map->filename, $render['content'], $mimeType, $shareWith);
 
         $job->google_file_id = $result['file_id'];
 

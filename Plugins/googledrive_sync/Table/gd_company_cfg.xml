@@ -26,6 +26,18 @@
         <type>text</type>
     </column>
     <column>
+        <name>token_json</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>token_expires_at</name>
+        <type>timestamp</type>
+    </column>
+    <column>
+        <name>token_updated_at</name>
+        <type>timestamp</type>
+    </column>
+    <column>
         <name>shared_drive_id</name>
         <type>character varying(64)</type>
     </column>

@@ -6,6 +6,8 @@ use FacturaScripts\Core\Template\ModelClass;
 use FacturaScripts\Core\Template\ModelTrait;
 use FacturaScripts\Core\Tools;
 use FacturaScripts\Core\Where;
+use JsonException;
+use RuntimeException;
 
 /**
  * Configuration model per company for the Google Drive synchronisation plugin.
@@ -13,6 +15,20 @@ use FacturaScripts\Core\Where;
 class GoogleDriveCompanyConfig extends ModelClass
 {
     use ModelTrait;
+
+    /**
+     * Cached decoded credentials to avoid repeated json_decode operations.
+     *
+     * @var array<string, mixed>|null
+     */
+    private ?array $credentialsCache = null;
+
+    /**
+     * Cached decoded token payload.
+     *
+     * @var array<string, mixed>|null
+     */
+    private ?array $tokenCache = null;
 
     /** @var int|null */
     public $id;
@@ -25,6 +41,15 @@ class GoogleDriveCompanyConfig extends ModelClass
 
     /** @var string|null */
     public $credentials_json;
+
+    /** @var string|null */
+    public $token_json;
+
+    /** @var string|null */
+    public $token_expires_at;
+
+    /** @var string|null */
+    public $token_updated_at;
 
     /** @var string|null */
     public $shared_drive_id;
@@ -73,6 +98,12 @@ class GoogleDriveCompanyConfig extends ModelClass
         parent::clear();
 
         $this->credentials_mode = 'service';
+        $this->credentials_json = null;
+        $this->token_json = null;
+        $this->token_expires_at = null;
+        $this->token_updated_at = null;
+        $this->credentialsCache = null;
+        $this->tokenCache = null;
         $this->path_template = '{year}/{doctype}/{third.nif} - {third.name}';
         $this->filename_template = '{date:YYYYMMDD}-{doctype}-{doc.serie}-{doc.number}-{third.nif}-{third.name}.pdf';
         $this->upload_pdf = true;
@@ -109,13 +140,50 @@ class GoogleDriveCompanyConfig extends ModelClass
         return parent::test();
     }
 
-    public function isConfigured(): bool
+    public function loadFromData(array $data = [], array $exclude = []): void
     {
-        if (!empty($this->credentials_json)) {
-            return true;
+        parent::loadFromData($data, $exclude);
+
+        $this->credentials_json = $this->decryptValue($this->credentials_json);
+        $this->token_json = $this->decryptValue($this->token_json);
+        $this->credentialsCache = null;
+        $this->tokenCache = null;
+    }
+
+    public function save(): bool
+    {
+        $credentialsPlain = $this->normalizePlainText($this->credentials_json);
+        $tokenPlain = $this->normalizePlainText($this->token_json);
+
+        $this->credentials_json = $this->encryptValue($credentialsPlain);
+        $this->token_json = $this->encryptValue($tokenPlain);
+
+        $saved = parent::save();
+
+        $this->credentials_json = $credentialsPlain;
+        $this->token_json = $tokenPlain;
+
+        if ($saved) {
+            $this->credentialsCache = null;
+            $this->tokenCache = null;
         }
 
-        return !empty($this->root_folder_id);
+        return $saved;
+    }
+
+    public function isConfigured(): bool
+    {
+        $credentials = $this->getCredentialsArray();
+
+        if ('service' === $this->credentials_mode) {
+            return !empty($credentials['client_email']) && !empty($credentials['private_key']);
+        }
+
+        if (empty($credentials['client_id']) || empty($credentials['client_secret'])) {
+            return false;
+        }
+
+        return null !== $this->getRefreshToken();
     }
 
     public static function forCompany(int $companyId): self
@@ -218,6 +286,225 @@ class GoogleDriveCompanyConfig extends ModelClass
         }
 
         return array_values($emails);
+    }
+
+    /**
+     * Returns the decoded credentials array, caching the result between calls.
+     *
+     * @return array<string, mixed>
+     */
+    public function getCredentialsArray(): array
+    {
+        if ($this->credentialsCache !== null) {
+            return $this->credentialsCache;
+        }
+
+        $json = trim((string)$this->credentials_json);
+        if ($json === '') {
+            $this->credentialsCache = [];
+            return [];
+        }
+
+        try {
+            $decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $exception) {
+            $this->credentialsCache = [];
+            return [];
+        }
+
+        $this->credentialsCache = is_array($decoded) ? $decoded : [];
+        return $this->credentialsCache;
+    }
+
+    /**
+     * @param array<string, mixed> $credentials
+     */
+    public function setCredentialsArray(array $credentials): void
+    {
+        $this->credentialsCache = $credentials;
+        $this->credentials_json = json_encode($credentials, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getTokenArray(): array
+    {
+        if ($this->tokenCache !== null) {
+            return $this->tokenCache;
+        }
+
+        $json = trim((string)$this->token_json);
+        if ($json === '') {
+            $this->tokenCache = [];
+            return [];
+        }
+
+        try {
+            $decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $exception) {
+            $this->tokenCache = [];
+            return [];
+        }
+
+        $this->tokenCache = is_array($decoded) ? $decoded : [];
+        return $this->tokenCache;
+    }
+
+    /**
+     * @param array<string, mixed> $token
+     */
+    public function setTokenArray(array $token): void
+    {
+        $this->tokenCache = $token;
+        $this->token_json = json_encode($token, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $expires = $this->resolveTokenExpiry($token);
+        $this->token_expires_at = $expires ? date('Y-m-d H:i:s', $expires) : null;
+        $this->token_updated_at = Tools::dateTime();
+    }
+
+    public function clearToken(): void
+    {
+        $this->tokenCache = [];
+        $this->token_json = null;
+        $this->token_expires_at = null;
+        $this->token_updated_at = null;
+    }
+
+    public function getRefreshToken(): ?string
+    {
+        $token = $this->getTokenArray();
+        if (!empty($token['refresh_token'])) {
+            return (string)$token['refresh_token'];
+        }
+
+        $credentials = $this->getCredentialsArray();
+        if (!empty($credentials['refresh_token'])) {
+            return (string)$credentials['refresh_token'];
+        }
+
+        return null;
+    }
+
+    public function hasValidAccessToken(): bool
+    {
+        if (empty($this->token_json) || empty($this->token_expires_at)) {
+            return false;
+        }
+
+        return strtotime($this->token_expires_at) > (time() + 60);
+    }
+
+    public function shouldRefreshToken(): bool
+    {
+        if ('service' === $this->credentials_mode) {
+            return false;
+        }
+
+        if (false === $this->hasValidAccessToken()) {
+            return true;
+        }
+
+        return strtotime($this->token_expires_at) <= (time() + 300);
+    }
+
+    /**
+     * @param array<string, mixed> $token
+     */
+    private function resolveTokenExpiry(array $token): ?int
+    {
+        if (isset($token['expiry_date'])) {
+            return (int)$token['expiry_date'];
+        }
+
+        if (isset($token['created'], $token['expires_in'])) {
+            return (int)$token['created'] + (int)$token['expires_in'];
+        }
+
+        if (isset($token['expires_in'])) {
+            return time() + (int)$token['expires_in'];
+        }
+
+        return null;
+    }
+
+    private function normalizePlainText(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+        return $trimmed === '' ? null : $trimmed;
+    }
+
+    private function encryptValue(?string $value): ?string
+    {
+        $value = $this->normalizePlainText($value);
+        if ($value === null) {
+            return null;
+        }
+
+        if (!function_exists('openssl_encrypt')) {
+            throw new RuntimeException('openssl-extension-required');
+        }
+
+        $key = self::encryptionKey();
+        $iv = random_bytes(16);
+        $encrypted = openssl_encrypt($value, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
+        if ($encrypted === false) {
+            throw new RuntimeException('unable-to-encrypt');
+        }
+
+        return base64_encode($iv . $encrypted);
+    }
+
+    private function decryptValue(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return null;
+        }
+
+        $decoded = base64_decode($trimmed, true);
+        if ($decoded === false || strlen($decoded) <= 16) {
+            return $trimmed;
+        }
+
+        if (!function_exists('openssl_decrypt')) {
+            throw new RuntimeException('openssl-extension-required');
+        }
+
+        $iv = substr($decoded, 0, 16);
+        $cipherText = substr($decoded, 16);
+        $plain = openssl_decrypt($cipherText, 'AES-256-CBC', self::encryptionKey(), OPENSSL_RAW_DATA, $iv);
+        if ($plain === false) {
+            return $trimmed;
+        }
+
+        return $plain;
+    }
+
+    private static function encryptionKey(): string
+    {
+        $stored = (string)Tools::settings('googledrive_sync', 'secret_key', '');
+        if ($stored === '') {
+            $raw = random_bytes(32);
+            $stored = base64_encode($raw);
+            Tools::settingsSet('googledrive_sync', 'secret_key', $stored);
+            Tools::settingsSave();
+        }
+
+        $decoded = base64_decode($stored, true);
+        if ($decoded === false || strlen($decoded) < 16) {
+            $decoded = hash('sha256', $stored, true);
+        }
+
+        return substr(hash('sha256', $decoded, true), 0, 32);
     }
 
     /**
