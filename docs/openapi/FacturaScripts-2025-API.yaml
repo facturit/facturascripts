@@ -1,0 +1,1300 @@
+openapi: 3.0.3
+info:
+  title: FacturaScripts 2025 API
+  version: "2025.0"
+  description: |
+    Especificación OpenAPI de la API REST v3 incluida en FacturaScripts 2025. La API expone recursos
+    CRUD generados automáticamente a partir de los modelos del ERP y controladores especializados
+    para la creación de documentos, gestión de ficheros, pagos, exportaciones y consulta de plugins.
+    Todas las solicitudes deben incluir un token válido en el encabezado `X-Auth-Token`.
+servers:
+  - url: https://{baseUrl}
+    description: Servidor FacturaScripts
+    variables:
+      baseUrl:
+        default: demo.facturascripts.com
+        description: Dominio base (sin ruta) de la instalación
+security:
+  - ApiToken: []
+tags:
+  - name: Descubrimiento
+    description: Recursos para explorar la API y recuperar metadatos de los modelos.
+  - name: Recursos genéricos
+    description: Operaciones CRUD automáticas sobre los modelos publicados en `/Dinamic/Model`.
+  - name: Documentos
+    description: Creación de documentos de venta/compra y emisión de rectificativas.
+  - name: Pagos
+    description: Actualización del estado de cobro/pago de facturas.
+  - name: Archivos
+    description: Endpoints para subir, listar y vincular ficheros y material gráfico de productos.
+  - name: Exportaciones
+    description: Generación de documentos imprimibles en PDF/XLS/CSV.
+  - name: Plugins
+    description: Consulta de la lista de plugins disponibles en la instancia.
+components:
+  securitySchemes:
+    ApiToken:
+      type: apiKey
+      in: header
+      name: X-Auth-Token
+  parameters:
+    ResourceParam:
+      name: resource
+      in: path
+      required: true
+      schema:
+        type: string
+      description: |
+        Nombre pluralizado del recurso. Use `GET /api/3` para descubrir los valores disponibles.
+        Excluye los nombres reservados por los controladores especializados descritos en esta especificación.
+    RecordIdParam:
+      name: recordId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Identificador primario del registro (según el modelo expuesto por la API).
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 50
+      description: Número máximo de registros a devolver.
+    OffsetParam:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+      description: Índice inicial para paginación basada en desplazamiento.
+    FilterParam:
+      name: filter
+      in: query
+      style: deepObject
+      explode: true
+      schema:
+        type: object
+        additionalProperties:
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+      description: |
+        Conjunto de filtros aplicados como cláusulas `WHERE`. Acepte sufijos `_gt`, `_lt`, `_gte`, `_lte`,
+        `_neq`, `_like`, `_null`, `_notnull`, `_is` y `_isnot` para construir operadores específicos.
+    SortParam:
+      name: sort
+      in: query
+      style: deepObject
+      explode: true
+      schema:
+        type: object
+        additionalProperties:
+          type: string
+          enum: [ASC, DESC]
+      description: Columnas y sentido de ordenación.
+    OperationParam:
+      name: operation
+      in: query
+      style: deepObject
+      explode: true
+      schema:
+        type: object
+        additionalProperties:
+          type: string
+          enum: [AND, OR]
+      description: Operadores lógicos a aplicar entre filtros (`AND` por defecto).
+    AttachedFileIdParam:
+      name: idfile
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: Identificador del archivo adjunto (`idfile`).
+    ProductoImagenIdParam:
+      name: imagenId
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: Identificador de la imagen vinculada al producto.
+    ExportRecordParam:
+      name: documentId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Identificador del documento a exportar.
+    PaymentInvoiceIdParam:
+      name: facturaId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Identificador de la factura a actualizar.
+  headers:
+    TotalCount:
+      description: Número total de registros que cumplen los filtros.
+      schema:
+        type: integer
+        format: int64
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        data:
+          type: object
+          additionalProperties: true
+      required: [error]
+      description: Respuesta de error devuelta por los controladores API.
+    SuccessResponse:
+      type: object
+      properties:
+        ok:
+          type: string
+        data:
+          type: object
+          additionalProperties: true
+      required: [ok]
+      description: Mensaje genérico de confirmación.
+    GenericModel:
+      type: object
+      additionalProperties: true
+      description: Representación genérica de un modelo expuesto por la API.
+    SchemaField:
+      type: object
+      properties:
+        type:
+          type: string
+        default:
+          nullable: true
+        is_nullable:
+          type: boolean
+      required: [type, default, is_nullable]
+    Cliente:
+      type: object
+      properties:
+        codcliente:
+          type: string
+          description: Código único (hasta 10 caracteres).
+        nombre:
+          type: string
+        razonsocial:
+          type: string
+        cifnif:
+          type: string
+        email:
+          type: string
+          format: email
+        telefono1:
+          type: string
+        telefono2:
+          type: string
+        debaja:
+          type: boolean
+        observaciones:
+          type: string
+        fechaalta:
+          type: string
+          format: date
+      additionalProperties: true
+    Producto:
+      type: object
+      properties:
+        idproducto:
+          type: integer
+        referencia:
+          type: string
+        descripcion:
+          type: string
+        precio:
+          type: number
+          format: float
+        tipo:
+          type: string
+        secompra:
+          type: boolean
+        sevende:
+          type: boolean
+        stockfis:
+          type: number
+          format: float
+        publico:
+          type: boolean
+        bloqueado:
+          type: boolean
+        observaciones:
+          type: string
+      additionalProperties: true
+    AttachedFile:
+      type: object
+      properties:
+        idfile:
+          type: integer
+        filename:
+          type: string
+        path:
+          type: string
+        mimetype:
+          type: string
+        size:
+          type: integer
+          format: int64
+        date:
+          type: string
+          format: date
+        hour:
+          type: string
+          format: time
+        download:
+          type: string
+          format: uri
+        download-permanent:
+          type: string
+          format: uri
+      additionalProperties: true
+    ProductoImagen:
+      type: object
+      properties:
+        id:
+          type: integer
+        idproducto:
+          type: integer
+        idfile:
+          type: integer
+        referencia:
+          type: string
+        orden:
+          type: integer
+        download:
+          type: string
+          format: uri
+        download-permanent:
+          type: string
+          format: uri
+      additionalProperties: true
+    Plugin:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: number
+        description:
+          type: string
+        enabled:
+          type: boolean
+        hidden:
+          type: boolean
+        installed:
+          type: boolean
+        compatible:
+          type: boolean
+        min_version:
+          type: number
+        min_php:
+          type: number
+        require:
+          type: array
+          items:
+            type: string
+      additionalProperties: true
+    DocumentLineInput:
+      type: object
+      properties:
+        referencia:
+          type: string
+          description: Referencia del artículo.
+        descripcion:
+          type: string
+        cantidad:
+          type: number
+          format: float
+          default: 1
+        pvpunitario:
+          type: number
+          format: float
+        dtopor:
+          type: number
+          format: float
+        dtopor2:
+          type: number
+          format: float
+        codimpuesto:
+          type: string
+        excepcioniva:
+          type: string
+        suplido:
+          type: boolean
+        mostrar_cantidad:
+          type: boolean
+        mostrar_precio:
+          type: boolean
+        salto_pagina:
+          type: boolean
+      additionalProperties: true
+    DocumentCreationResponse:
+      type: object
+      properties:
+        doc:
+          type: object
+          additionalProperties: true
+          description: Datos persistidos del documento.
+        lines:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: Líneas resultantes tras el cálculo de totales.
+      required: [doc, lines]
+    PaymentRequest:
+      type: object
+      required: [pagada]
+      properties:
+        pagada:
+          type: boolean
+        fechapago:
+          type: string
+          format: date
+        codpago:
+          type: string
+      additionalProperties: false
+    UploadFilesResponse:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttachedFile'
+      required: [files]
+    RefundInvoiceRequest:
+      type: object
+      required:
+        - idfactura
+        - fecha
+      properties:
+        idfactura:
+          type: string
+        fecha:
+          type: string
+          format: date
+        hora:
+          type: string
+        codserie:
+          type: string
+        idestado:
+          type: integer
+        nick:
+          type: string
+        observaciones:
+          type: string
+      additionalProperties: true
+      description: |
+        Se admiten campos dinámicos `refund_{idLinea}` para indicar las cantidades a rectificar
+        por cada línea de la factura original. Si no se envían, se rectifican todas las líneas.
+  requestBodies:
+    GenericFormBody:
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            additionalProperties: true
+      description: Datos del modelo enviados como pares clave-valor.
+    SalesDocumentBody:
+      required: true
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            required:
+              - codcliente
+              - lineas
+            properties:
+              codcliente:
+                type: string
+              codalmacen:
+                type: string
+              fecha:
+                type: string
+                format: date
+              hora:
+                type: string
+              coddivisa:
+                type: string
+              pagada:
+                type: boolean
+              lineas:
+                type: string
+                description: JSON con un array de objetos `DocumentLineInput`.
+                example: |
+                  [
+                    {"referencia": "ART-001", "descripcion": "Servicio consultoría", "cantidad": 1, "pvpunitario": 100}
+                  ]
+            additionalProperties: true
+      description: Parámetros requeridos para crear documentos de venta.
+    PurchaseDocumentBody:
+      required: true
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            required:
+              - codproveedor
+              - lineas
+            properties:
+              codproveedor:
+                type: string
+              codalmacen:
+                type: string
+              fecha:
+                type: string
+                format: date
+              hora:
+                type: string
+              coddivisa:
+                type: string
+              pagada:
+                type: boolean
+              lineas:
+                type: string
+                description: JSON con un array de objetos `DocumentLineInput`.
+            additionalProperties: true
+      description: Parámetros requeridos para crear documentos de compra.
+    AttachedFileBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              file:
+                type: string
+                format: binary
+              files:
+                type: array
+                items:
+                  type: string
+                  format: binary
+              descripcion:
+                type: string
+              idfile:
+                type: integer
+              filename:
+                type: string
+            additionalProperties: true
+      description: Subida de archivos individuales aceptando campos adicionales del modelo `AttachedFile`.
+    ProductoImagenBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              file:
+                type: string
+                format: binary
+              files:
+                type: array
+                items:
+                  type: string
+                  format: binary
+              idproducto:
+                type: integer
+              referencia:
+                type: string
+              orden:
+                type: integer
+            required:
+              - idproducto
+            additionalProperties: true
+      description: Subida de imágenes asociadas a un producto. Se admite un único fichero por petición.
+    UploadFilesBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              files:
+                type: array
+                items:
+                  type: string
+                  format: binary
+            required: [files]
+      description: Carga masiva de ficheros al directorio `MyFiles`.
+    PaymentBody:
+      required: true
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            $ref: '#/components/schemas/PaymentRequest'
+      description: Datos necesarios para marcar o desmarcar una factura como pagada.
+    RefundInvoiceBody:
+      required: true
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            $ref: '#/components/schemas/RefundInvoiceRequest'
+      description: Datos obligatorios y opcionales para generar una factura rectificativa.
+  responses:
+    UnauthorizedError:
+      description: Token de autenticación ausente o inválido.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: authentication-required
+    BadRequestError:
+      description: Petición mal formada o sin los parámetros obligatorios.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: invalid-request
+    ConflictError:
+      description: Conflicto por duplicidad o imposibilidad de completar la operación solicitada.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: duplicate-record
+    UnprocessableEntityError:
+      description: El modelo no ha podido guardarse porque las validaciones han fallado.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: record-save-error
+    ServerError:
+      description: Error inesperado al procesar la solicitud en el servidor.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: internal-server-error
+    ForbiddenError:
+      description: El token proporcionado no dispone de permisos suficientes.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: access-denied
+    NotFoundError:
+      description: Recurso o registro no encontrado.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+paths:
+  /api/3:
+    get:
+      tags: [Descubrimiento]
+      summary: Listar recursos disponibles
+      description: Devuelve los nombres de todos los controladores y modelos expuestos por la API.
+      responses:
+        '200':
+          description: Recursos disponibles.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resources:
+                    type: array
+                    items:
+                      type: string
+              example:
+                resources: ["clientes", "productos", "crearFacturaCliente", "attachedfiles"]
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /api/3/{resource}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceParam'
+    get:
+      tags: [Recursos genéricos]
+      summary: Listar registros de un recurso
+      description: |
+        Recupera colecciones de cualquier modelo disponible. Incluye paginación mediante `limit` y `offset`,
+        filtros dinámicos y ordenación. La cabecera `X-Total-Count` informa del total de coincidencias.
+      parameters:
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/FilterParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/OperationParam'
+      responses:
+        '200':
+          description: Colección de registros.
+          headers:
+            X-Total-Count:
+              $ref: '#/components/headers/TotalCount'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GenericModel'
+              example:
+                - codcliente: C0001
+                  nombre: Cliente API
+                  debaja: false
+                - codcliente: C0002
+                  nombre: Cliente Demo
+                  debaja: false
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags: [Recursos genéricos]
+      summary: Crear un nuevo registro
+      description: Inserta un registro del modelo asociado. El campo clave primaria no debe existir previamente.
+      requestBody:
+        $ref: '#/components/requestBodies/GenericFormBody'
+      responses:
+        '200':
+          description: Registro creado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+  /api/3/{resource}/schema:
+    parameters:
+      - $ref: '#/components/parameters/ResourceParam'
+    get:
+      tags: [Recursos genéricos]
+      summary: Obtener metadatos de un modelo
+      description: Devuelve el tipo de datos, valor por defecto y nulabilidad de cada campo del modelo solicitado.
+      responses:
+        '200':
+          description: Esquema del modelo.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/SchemaField'
+              example:
+                codcliente:
+                  type: string
+                  default: null
+                  is_nullable: false
+                nombre:
+                  type: string
+                  default: ''
+                  is_nullable: false
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /api/3/{resource}/{recordId}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceParam'
+      - $ref: '#/components/parameters/RecordIdParam'
+    get:
+      tags: [Recursos genéricos]
+      summary: Consultar un registro por su identificador
+      responses:
+        '200':
+          description: Registro encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericModel'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    put:
+      tags: [Recursos genéricos]
+      summary: Actualizar un registro existente
+      requestBody:
+        $ref: '#/components/requestBodies/GenericFormBody'
+      responses:
+        '200':
+          description: Registro actualizado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    delete:
+      tags: [Recursos genéricos]
+      summary: Eliminar un registro
+      responses:
+        '200':
+          description: Eliminación confirmada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+  /api/3/attachedfiles:
+    get:
+      tags: [Archivos]
+      summary: Listar archivos adjuntos
+      parameters:
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/FilterParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/OperationParam'
+      responses:
+        '200':
+          description: Relación de adjuntos registrados, incluyendo enlaces temporales y permanentes de descarga.
+          headers:
+            X-Total-Count:
+              $ref: '#/components/headers/TotalCount'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AttachedFile'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags: [Archivos]
+      summary: Subir o registrar un archivo adjunto
+      description: Acepta multipart/form-data con uno o varios campos de archivo. Los ficheros `.php` se descartan por seguridad.
+      requestBody:
+        $ref: '#/components/requestBodies/AttachedFileBody'
+      responses:
+        '200':
+          description: Registro creado o actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+  /api/3/attachedfiles/schema:
+    get:
+      tags: [Archivos]
+      summary: Obtener el esquema del modelo AttachedFile
+      responses:
+        '200':
+          description: Metadatos de campos del modelo AttachedFile.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/SchemaField'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /api/3/attachedfiles/{idfile}:
+    parameters:
+      - $ref: '#/components/parameters/AttachedFileIdParam'
+    get:
+      tags: [Archivos]
+      summary: Obtener los metadatos de un adjunto
+      responses:
+        '200':
+          description: Información del adjunto solicitada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttachedFile'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      tags: [Archivos]
+      summary: Actualizar los campos de un adjunto
+      requestBody:
+        $ref: '#/components/requestBodies/GenericFormBody'
+      responses:
+        '200':
+          description: Actualización realizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      tags: [Archivos]
+      summary: Eliminar un adjunto y su fichero físico
+      responses:
+        '200':
+          description: Adjuntos eliminado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+  /api/3/uploadFiles:
+    post:
+      tags: [Archivos]
+      summary: Subir varios ficheros en lote
+      requestBody:
+        $ref: '#/components/requestBodies/UploadFilesBody'
+      responses:
+        '200':
+          description: Resultado de la carga masiva.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadFilesResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags: [Archivos]
+      summary: Subir varios ficheros en lote (método alternativo)
+      requestBody:
+        $ref: '#/components/requestBodies/UploadFilesBody'
+      responses:
+        '200':
+          description: Resultado de la carga masiva.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadFilesResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /api/3/productoimagenes:
+    get:
+      tags: [Archivos]
+      summary: Listar imágenes vinculadas a productos
+      parameters:
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/FilterParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/OperationParam'
+      responses:
+        '200':
+          description: Imágenes asociadas a productos, incluyendo enlaces de descarga.
+          headers:
+            X-Total-Count:
+              $ref: '#/components/headers/TotalCount'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductoImagen'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags: [Archivos]
+      summary: Subir una imagen para un producto
+      requestBody:
+        $ref: '#/components/requestBodies/ProductoImagenBody'
+      responses:
+        '200':
+          description: Imagen vinculada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+  /api/3/productoimagenes/schema:
+    get:
+      tags: [Archivos]
+      summary: Obtener el esquema del modelo ProductoImagen
+      responses:
+        '200':
+          description: Metadatos de campos del modelo ProductoImagen.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/SchemaField'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /api/3/productoimagenes/{imagenId}:
+    parameters:
+      - $ref: '#/components/parameters/ProductoImagenIdParam'
+    get:
+      tags: [Archivos]
+      summary: Obtener una imagen asociada a producto
+      responses:
+        '200':
+          description: Datos de la imagen solicitada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductoImagen'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    put:
+      tags: [Archivos]
+      summary: Actualizar los metadatos de una imagen
+      requestBody:
+        $ref: '#/components/requestBodies/GenericFormBody'
+      responses:
+        '200':
+          description: Imagen actualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      tags: [Archivos]
+      summary: Eliminar una imagen de producto
+      responses:
+        '200':
+          description: Imagen eliminada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+  /api/3/plugins:
+    get:
+      tags: [Plugins]
+      summary: Listar plugins disponibles
+      parameters:
+        - $ref: '#/components/parameters/FilterParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Catálogo de plugins instalados o disponibles.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Plugin'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /api/3/crearAlbaranCliente:
+    post: &SalesDocumentOperation
+      tags: [Documentos]
+      summary: Crear albarán de cliente
+      description: Genera un documento de venta asignando el cliente y las líneas proporcionadas.
+      requestBody:
+        $ref: '#/components/requestBodies/SalesDocumentBody'
+      responses:
+        '200':
+          description: Documento creado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentCreationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+    put:
+      <<: *SalesDocumentOperation
+      summary: Reintentar creación de albarán de cliente
+  /api/3/crearFacturaCliente:
+    post:
+      <<: *SalesDocumentOperation
+      summary: Crear factura de cliente
+    put:
+      <<: *SalesDocumentOperation
+      summary: Reintentar creación de factura de cliente
+  /api/3/crearPedidoCliente:
+    post:
+      <<: *SalesDocumentOperation
+      summary: Crear pedido de cliente
+    put:
+      <<: *SalesDocumentOperation
+      summary: Reintentar creación de pedido de cliente
+  /api/3/crearPresupuestoCliente:
+    post:
+      <<: *SalesDocumentOperation
+      summary: Crear presupuesto de cliente
+    put:
+      <<: *SalesDocumentOperation
+      summary: Reintentar creación de presupuesto de cliente
+  /api/3/crearAlbaranProveedor:
+    post: &PurchaseDocumentOperation
+      tags: [Documentos]
+      summary: Crear albarán de proveedor
+      description: Genera un documento de compra vinculado al proveedor indicado.
+      requestBody:
+        $ref: '#/components/requestBodies/PurchaseDocumentBody'
+      responses:
+        '200':
+          description: Documento creado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentCreationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+    put:
+      <<: *PurchaseDocumentOperation
+      summary: Reintentar creación de albarán de proveedor
+  /api/3/crearFacturaProveedor:
+    post:
+      <<: *PurchaseDocumentOperation
+      summary: Crear factura de proveedor
+    put:
+      <<: *PurchaseDocumentOperation
+      summary: Reintentar creación de factura de proveedor
+  /api/3/crearPedidoProveedor:
+    post:
+      <<: *PurchaseDocumentOperation
+      summary: Crear pedido de proveedor
+    put:
+      <<: *PurchaseDocumentOperation
+      summary: Reintentar creación de pedido de proveedor
+  /api/3/crearPresupuestoProveedor:
+    post:
+      <<: *PurchaseDocumentOperation
+      summary: Crear presupuesto de proveedor
+    put:
+      <<: *PurchaseDocumentOperation
+      summary: Reintentar creación de presupuesto de proveedor
+  /api/3/crearFacturaRectificativaCliente:
+    post:
+      tags: [Documentos]
+      summary: Generar factura rectificativa de cliente
+      description: Crea una rectificativa a partir de una factura existente. Permite indicar cantidades a rectificar por línea mediante campos `refund_{id}`.
+      requestBody:
+        $ref: '#/components/requestBodies/RefundInvoiceBody'
+      responses:
+        '200':
+          description: Factura rectificativa creada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentCreationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    put:
+      tags: [Documentos]
+      summary: Reintentar creación de factura rectificativa de cliente
+      requestBody:
+        $ref: '#/components/requestBodies/RefundInvoiceBody'
+      responses:
+        '200':
+          description: Factura rectificativa creada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentCreationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+  /api/3/pagarFacturaCliente/{facturaId}:
+    parameters:
+      - $ref: '#/components/parameters/PaymentInvoiceIdParam'
+    post:
+      tags: [Pagos]
+      summary: Marcar factura de cliente como cobrada o pendiente
+      requestBody:
+        $ref: '#/components/requestBodies/PaymentBody'
+      responses:
+        '200':
+          description: Estado de la factura actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    put:
+      tags: [Pagos]
+      summary: Marcar factura de cliente como cobrada o pendiente (método alternativo)
+      requestBody:
+        $ref: '#/components/requestBodies/PaymentBody'
+      responses:
+        '200':
+          description: Estado de la factura actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+  /api/3/pagarFacturaProveedor/{facturaId}:
+    parameters:
+      - $ref: '#/components/parameters/PaymentInvoiceIdParam'
+    post:
+      tags: [Pagos]
+      summary: Marcar factura de proveedor como pagada o pendiente
+      requestBody:
+        $ref: '#/components/requestBodies/PaymentBody'
+      responses:
+        '200':
+          description: Estado de la factura actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    put:
+      tags: [Pagos]
+      summary: Marcar factura de proveedor como pagada o pendiente (método alternativo)
+      requestBody:
+        $ref: '#/components/requestBodies/PaymentBody'
+      responses:
+        '200':
+          description: Estado de la factura actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+  /api/3/exportarAlbaranCliente/{documentId}:
+    parameters:
+      - $ref: '#/components/parameters/ExportRecordParam'
+    get: &ExportOperation
+      tags: [Exportaciones]
+      summary: Exportar documento en formato imprimible
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [PDF, XLS, CSV, MAIL]
+          description: Formato de salida soportado por `ExportManager`.
+        - name: format
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+          description: Identificador de formato personalizado (`FormatoDocumento`).
+        - name: lang
+          in: query
+          schema:
+            type: string
+          description: Código de idioma a emplear en la exportación.
+      responses:
+        '200':
+          description: Documento generado.
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+  /api/3/exportarAlbaranProveedor/{documentId}:
+    parameters:
+      - $ref: '#/components/parameters/ExportRecordParam'
+    get:
+      <<: *ExportOperation
+      summary: Exportar albarán de proveedor
+  /api/3/exportarFacturaCliente/{documentId}:
+    parameters:
+      - $ref: '#/components/parameters/ExportRecordParam'
+    get:
+      <<: *ExportOperation
+      summary: Exportar factura de cliente
+  /api/3/exportarFacturaProveedor/{documentId}:
+    parameters:
+      - $ref: '#/components/parameters/ExportRecordParam'
+    get:
+      <<: *ExportOperation
+      summary: Exportar factura de proveedor
+  /api/3/exportarPedidoCliente/{documentId}:
+    parameters:
+      - $ref: '#/components/parameters/ExportRecordParam'
+    get:
+      <<: *ExportOperation
+      summary: Exportar pedido de cliente
+  /api/3/exportarPedidoProveedor/{documentId}:
+    parameters:
+      - $ref: '#/components/parameters/ExportRecordParam'
+    get:
+      <<: *ExportOperation
+      summary: Exportar pedido de proveedor
+  /api/3/exportarPresupuestoCliente/{documentId}:
+    parameters:
+      - $ref: '#/components/parameters/ExportRecordParam'
+    get:
+      <<: *ExportOperation
+      summary: Exportar presupuesto de cliente
+  /api/3/exportarPresupuestoProveedor/{documentId}:
+    parameters:
+      - $ref: '#/components/parameters/ExportRecordParam'
+    get:
+      <<: *ExportOperation
+      summary: Exportar presupuesto de proveedor
