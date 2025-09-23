@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<table>
+    <column>
+        <name>idnote</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>title</name>
+        <type>character varying(200)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>category</name>
+        <type>character varying(80)</type>
+    </column>
+    <column>
+        <name>status</name>
+        <type>character varying(30)</type>
+    </column>
+    <column>
+        <name>priority</name>
+        <type>character varying(30)</type>
+    </column>
+    <column>
+        <name>owner</name>
+        <type>character varying(50)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>tags</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>collaborators</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>summary</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>content</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>metadata</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>due_date</name>
+        <type>date</type>
+    </column>
+    <column>
+        <name>created_at</name>
+        <type>timestamp</type>
+    </column>
+    <column>
+        <name>updated_at</name>
+        <type>timestamp</type>
+    </column>
+    <constraint>
+        <name>an_notes_pkey</name>
+        <type>PRIMARY KEY (idnote)</type>
+    </constraint>
+    <constraint>
+        <name>an_notes_owner_fkey</name>
+        <type>FOREIGN KEY (owner) REFERENCES users (nick) ON DELETE CASCADE ON UPDATE CASCADE</type>
+    </constraint>
+</table>
