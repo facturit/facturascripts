@@ -4,7 +4,9 @@
 /doc/
 /MyFiles/
 /node_modules/
-/Plugins/
+/Plugins/*
+!/Plugins/AdvancedNotes/
+!/Plugins/AdvancedNotes/**
 /vendor/
 .DS_Store
 .htaccess

@@ -1,0 +1,279 @@
+{% extends "Master/MicroTemplate.html.twig" %}
+
+{% import 'Macro/Forms.html.twig' as forms %}
+
+{% set templateKeys = fsc.noteTemplates|keys %}
+{% set defaultTemplate = (templateKeys|first) ?: 'meeting' %}
+{% set initialData = {
+    'idnote': fsc.note.idnote ?? null,
+    'title': fsc.note.title ?? '',
+    'type': fsc.note.category is empty ? defaultTemplate : fsc.note.category,
+    'status': fsc.note.status ?? 'draft',
+    'priority': fsc.note.priority ?? 'medium',
+    'dueDate': fsc.note.due_date ? fsc.note.due_date|date('Y-m-d') : '',
+    'tags': fsc.note.tags ?? [],
+    'collaborators': fsc.note.collaborators ?? [],
+    'summary': fsc.note.summary ?? '',
+    'content': {
+        'html': fsc.note.content ?? '',
+        'blocks': fsc.note.metadata.blocks|default([])
+    },
+    'metadata': fsc.note.metadata ?? {},
+    'step': fsc.step
+} %}
+
+{% block messages %}
+    <div class="bg-gradient-primary-to-secondary pt-5 pb-5">
+        <div class="container">
+            <div class="row">
+                <div class="col">{{ parent() }}</div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <div class="container advanced-notes-container" data-initial-step="{{ fsc.step }}">
+        <div class="row g-3">
+            <div class="col-12 col-xxl-9">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+                            <div>
+                                <h1 class="h3 mb-1">
+                                    <i class="fa-solid fa-note-sticky me-2 text-primary"></i>
+                                    {{ trans('advanced-note-wizard') }}
+                                </h1>
+                                <p class="text-muted mb-0">{{ trans('advanced-note-wizard-description') }}</p>
+                            </div>
+                            <div class="an-stepper" role="tablist">
+                                <button class="an-stepper-item" data-target="basics">
+                                    <span class="an-step-number">1</span>
+                                    <span>{{ trans('wizard-step-basics') }}</span>
+                                </button>
+                                <button class="an-stepper-item" data-target="context">
+                                    <span class="an-step-number">2</span>
+                                    <span>{{ trans('wizard-step-context') }}</span>
+                                </button>
+                                <button class="an-stepper-item" data-target="structure">
+                                    <span class="an-step-number">3</span>
+                                    <span>{{ trans('wizard-step-structure') }}</span>
+                                </button>
+                                <button class="an-stepper-item" data-target="editor">
+                                    <span class="an-step-number">4</span>
+                                    <span>{{ trans('wizard-step-editor') }}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <form method="post" id="advanced-note-form" autocomplete="off">
+                            {{ formToken() }}
+                            <input type="hidden" name="action" value="save"/>
+                            <input type="hidden" name="current_step" id="an-current-step" value="{{ fsc.step }}"/>
+                            <input type="hidden" name="note_payload" id="note_payload"/>
+
+                            <div class="an-steps-wrapper">
+                                <div class="an-step" data-step="basics">
+                                    <div class="row g-3">
+                                        <div class="col-lg-7">
+                                            {{ forms.simpleInput('title', 'note_title', fsc.note.title, 'text', trans('note-title'), 'fa-solid fa-heading', {'placeholder': trans('note-title-placeholder'), 'required': ''}) }}
+                                        </div>
+                                        <div class="col-lg-5">
+                                            <label class="form-label">{{ trans('note-template') }}</label>
+                                            <div class="an-template-selector" id="an-template-selector">
+                                                {% for key, template in fsc.noteTemplates %}
+                                                    <button type="button"
+                                                            class="an-template-card"
+                                                            data-template="{{ key }}">
+                                                        <i class="{{ template.icon }} fa-lg text-primary mb-2"></i>
+                                                        <strong>{{ template.name }}</strong>
+                                                        <small class="text-muted d-block">{{ template.description }}</small>
+                                                        {% if template.default_tags is defined %}
+                                                            <span class="badge bg-light text-dark mt-2">{{ template.default_tags|join(', ') }}</span>
+                                                        {% endif %}
+                                                    </button>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">{{ trans('note-status') }}</label>
+                                            <select id="note_status" class="form-select">
+                                                {% for key, option in fsc.statusOptions %}
+                                                    <option value="{{ option.value }}" {% if option.value == initialData.status %}selected{% endif %}>{{ option.label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">{{ trans('note-priority') }}</label>
+                                            <select id="note_priority" class="form-select">
+                                                {% for key, option in fsc.priorityOptions %}
+                                                    <option value="{{ option.value }}" {% if option.value == initialData.priority %}selected{% endif %}>{{ option.label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <small class="form-text text-muted" id="an-priority-hint"></small>
+                                        </div>
+                                        <div class="col-md-4">
+                                            {{ forms.simpleInput('due_date', 'note_due_date', initialData.dueDate, 'date', trans('note-due-date'), 'fa-solid fa-calendar-day') }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="an-step" data-step="context">
+                                    <div class="row g-3">
+                                        <div class="col-lg-6">
+                                            <label class="form-label">{{ trans('note-tags') }}</label>
+                                            <div class="an-tag-input" id="an-tag-input">
+                                                <div class="an-tag-collection" id="an-tag-collection" data-remove-label="{{ trans('note-tag-remove-label') }}"></div>
+                                                <input type="text" id="note_tags" class="form-control" placeholder="{{ trans('note-tags-placeholder') }}"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <label class="form-label">{{ trans('note-collaborators') }}</label>
+                                            <select id="note_collaborators" class="form-select" multiple size="5">
+                                                {% for option in fsc.collaboratorOptions %}
+                                                    <option value="{{ option.nick }}">{{ option.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <small class="form-text text-muted">{{ trans('note-collaborators-help') }}</small>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label">{{ trans('note-summary') }}</label>
+                                            <textarea id="note_summary" class="form-control" rows="4" placeholder="{{ trans('note-summary-placeholder') }}">{{ fsc.note.summary }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="an-step" data-step="structure">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                                <h2 class="h5 mb-0">{{ trans('note-structure') }}</h2>
+                                                <button type="button" class="btn btn-outline-primary btn-sm" id="an-add-block"
+                                                        data-default-title="{{ trans('custom-block-title') }}"
+                                                        data-default-placeholder="{{ trans('custom-block-placeholder') }}">
+                                                    <i class="fa-solid fa-plus me-1"></i>{{ trans('note-add-block') }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="an-modules-grid" id="an-modules-grid">
+                                                {% for key, module in fsc.moduleLibrary %}
+                                                    <label class="an-module-card" data-module="{{ module.type }}">
+                                                        <input type="checkbox" class="form-check-input an-module-checkbox" value="{{ module.type }}"/>
+                                                        <span class="an-module-icon"><i class="{{ module.icon }}"></i></span>
+                                                        <span class="an-module-title">{{ module.name }}</span>
+                                                        <span class="an-module-description">{{ module.description }}</span>
+                                                    </label>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="alert alert-info d-flex align-items-start gap-2">
+                                                <i class="fa-solid fa-wand-magic-sparkles mt-1"></i>
+                                                <div>
+                                                    <strong>{{ trans('note-structure-ai') }}</strong>
+                                                    <p class="mb-0">{{ trans('note-structure-ai-description') }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="an-step" data-step="editor">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <div class="an-editor-toolbar" role="toolbar">
+                                                <button type="button" class="btn btn-light" data-command="bold" title="{{ trans('format-bold') }}"><i class="fa-solid fa-bold"></i></button>
+                                                <button type="button" class="btn btn-light" data-command="italic" title="{{ trans('format-italic') }}"><i class="fa-solid fa-italic"></i></button>
+                                                <button type="button" class="btn btn-light" data-command="underline" title="{{ trans('format-underline') }}"><i class="fa-solid fa-underline"></i></button>
+                                                <button type="button" class="btn btn-light" data-command="insertUnorderedList" title="{{ trans('format-bullet-list') }}"><i class="fa-solid fa-list-ul"></i></button>
+                                                <button type="button" class="btn btn-light" data-command="insertOrderedList" title="{{ trans('format-numbered-list') }}"><i class="fa-solid fa-list-ol"></i></button>
+                                                <button type="button" class="btn btn-light" data-command="formatBlock" data-value="blockquote" title="{{ trans('format-quote') }}"><i class="fa-solid fa-quote-right"></i></button>
+                                                <button type="button" class="btn btn-light" data-command="createLink" title="{{ trans('format-link') }}"><i class="fa-solid fa-link"></i></button>
+                                                <button type="button" class="btn btn-light" data-command="highlight" title="{{ trans('format-highlight') }}"><i class="fa-solid fa-highlighter"></i></button>
+                                                <div class="vr mx-2"></div>
+                                                <button type="button" class="btn btn-outline-primary" id="an-insert-checklist"><i class="fa-solid fa-square-check me-1"></i>{{ trans('insert-checklist') }}</button>
+                                                <button type="button" class="btn btn-outline-primary" id="an-insert-decision"><i class="fa-solid fa-scale-balanced me-1"></i>{{ trans('insert-decision') }}</button>
+                                                <button type="button" class="btn btn-outline-primary" id="an-insert-table"><i class="fa-solid fa-table me-1"></i>{{ trans('insert-table') }}</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="an-editor-canvas" id="an-editor" aria-label="{{ trans('note-editor-aria') }}"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mt-4">
+                                <button type="button" class="btn btn-outline-secondary" data-step-action="prev">
+                                    <i class="fa-solid fa-arrow-left me-1"></i>{{ trans('back') }}
+                                </button>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-outline-primary" data-step-action="next">
+                                        {{ trans('continue') }}<i class="fa-solid fa-arrow-right ms-1"></i>
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" id="an-save-button">
+                                        <i class="fa-solid fa-floppy-disk me-1"></i>{{ trans('save-note') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-xxl-3">
+                <div class="sticky-top" style="top: 90px;">
+                    <div class="card shadow-sm border-0 mb-3">
+                        <div class="card-body">
+                            <h2 class="h6 text-uppercase text-muted mb-3">{{ trans('note-insights') }}</h2>
+                            <div class="an-stats" id="an-stats">
+                                <div class="an-stat">
+                                    <span class="an-stat-value" id="an-word-count">0</span>
+                                    <span class="an-stat-label">{{ trans('notes-stat-words') }}</span>
+                                </div>
+                                <div class="an-stat">
+                                    <span class="an-stat-value" id="an-reading-time">0</span>
+                                    <span class="an-stat-label">{{ trans('notes-stat-reading') }}</span>
+                                </div>
+                                <div class="an-stat">
+                                    <span class="an-stat-value" id="an-block-count">0</span>
+                                    <span class="an-stat-label">{{ trans('notes-stat-blocks') }}</span>
+                                </div>
+                            </div>
+                            <hr/>
+                            <div>
+                                <h3 class="h6 text-muted text-uppercase mb-2">{{ trans('note-suggestions') }}</h3>
+                                <ul class="list-unstyled small mb-0" id="an-suggestions"></ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body">
+                            <h2 class="h6 text-uppercase text-muted mb-3">{{ trans('notes-recent') }}</h2>
+                            {% if fsc.recentNotes %}
+                                <ul class="list-group list-group-flush">
+                                    {% for note in fsc.recentNotes %}
+                                        <li class="list-group-item px-0">
+                                            <a href="AdvancedNoteWizard&idnote={{ note.idnote }}" class="stretched-link text-decoration-none">
+                                                <strong>{{ note.title }}</strong>
+                                                <div class="small text-muted">{{ note.updated_at }}</div>
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted small mb-0">{{ trans('notes-empty') }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="application/json" id="advanced-notes-initial">{{ initialData|json_encode(constant('JSON_PRETTY_PRINT'))|raw }}</script>
+    <script type="application/json" id="advanced-notes-templates">{{ fsc.noteTemplates|json_encode(constant('JSON_PRETTY_PRINT'))|raw }}</script>
+    <script type="application/json" id="advanced-notes-modules">{{ fsc.moduleLibrary|json_encode(constant('JSON_PRETTY_PRINT'))|raw }}</script>
+    <script type="application/json" id="advanced-notes-priorities">{{ fsc.priorityOptions|json_encode(constant('JSON_PRETTY_PRINT'))|raw }}</script>
+{% endblock %}
