@@ -1,0 +1,113 @@
+{% set firstView = fsc.views | first %}
+{% set product = firstView.model %}
+{% set attributes = fsc.getMatrixAttributes() %}
+{% set currentView = fsc.getCurrentView() %}
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col">
+            <form action="{{ product.url() }}" method="post" class="row g-3 align-items-end">
+                {{ formToken() }}
+                <input type="hidden" name="action" value="matrix-generate" />
+                <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}" />
+                <input type="hidden" name="idproducto" value="{{ product.primaryColumnValue() }}" />
+                <div class="col-md-4">
+                    <label class="form-label" for="matrix_attribute_x">{{ trans('matrix-attribute-x') }}</label>
+                    <select id="matrix_attribute_x" name="matrix_attribute_x" class="form-select" required>
+                        <option value="">--</option>
+                        {% for attribute in attributes %}
+                            {% set selected = attribute.code == fsc.matrixAttributeX ? 'selected' : '' %}
+                            <option value="{{ attribute.code }}" {{ selected }}>
+                                {{ attribute.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="matrix_attribute_y">{{ trans('matrix-attribute-y') }}</label>
+                    <select id="matrix_attribute_y" name="matrix_attribute_y" class="form-select" required>
+                        <option value="">--</option>
+                        {% for attribute in attributes %}
+                            {% set selected = attribute.code == fsc.matrixAttributeY ? 'selected' : '' %}
+                            <option value="{{ attribute.code }}" {{ selected }}>
+                                {{ attribute.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="matrix_codalmacen">{{ trans('warehouse') }}</label>
+                    <input type="text" id="matrix_codalmacen" name="matrix_codalmacen" value="{{ fsc.matrixWarehouse }}"
+                           class="form-control" maxlength="10" />
+                </div>
+                <div class="col-md-1 d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-table"></i>
+                        {{ trans('matrix-generate') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if fsc.matrixHasData %}
+        <div class="row">
+            <div class="col">
+                <form action="{{ product.url() }}" method="post" class="card shadow-sm">
+                    {{ formToken() }}
+                    <input type="hidden" name="action" value="matrix-save" />
+                    <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}" />
+                    <input type="hidden" name="idproducto" value="{{ product.primaryColumnValue() }}" />
+                    <input type="hidden" name="matrix_attribute_x" value="{{ fsc.matrixAttributeX }}" />
+                    <input type="hidden" name="matrix_attribute_y" value="{{ fsc.matrixAttributeY }}" />
+                    <input type="hidden" name="matrix_codalmacen" value="{{ fsc.matrixWarehouse }}" />
+                    <div class="card-header bg-light">
+                        <strong>{{ trans('matrix-stock-header', {'%warehouse%': fsc.matrixWarehouse}) }}</strong>
+                    </div>
+                    <div class="card-body p-0 table-responsive">
+                        <table class="table table-bordered table-sm align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">{{ trans('matrix-row-header') }}</th>
+                                    {% for column in fsc.matrixValuesX %}
+                                        <th scope="col" class="text-center">{{ column.label }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in fsc.matrixValuesY %}
+                                    <tr>
+                                        <th scope="row">{{ row.label }}</th>
+                                        {% for column in fsc.matrixValuesX %}
+                                            {% set cell = fsc.matrixGrid[row.id][column.id] ?? null %}
+                                            <td>
+                                                {% if cell %}
+                                                    <div class="small text-muted mb-1">{{ cell.variant.referencia }}</div>
+                                                    <input type="number" class="form-control form-control-sm"
+                                                           name="matrix_stock[{{ row.id }}][{{ column.id }}]"
+                                                           value="{{ cell.stock }}" step="0.001" min="0" />
+                                                {% else %}
+                                                    <span class="text-muted">{{ trans('matrix-variant-error') }}</span>
+                                                {% endif %}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer text-end">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa-solid fa-save"></i>
+                            {{ trans('matrix-save') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            {{ trans('matrix-select-help') }}
+        </div>
+    {% endif %}
+</div>

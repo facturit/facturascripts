@@ -1,0 +1,17 @@
+{
+    "matrix-attribute-x": "Atributo X",
+    "matrix-attribute-y": "Atributo Y",
+    "matrix-generate": "Generar",
+    "matrix-save": "Guardar matriz",
+    "matrix-select-help": "Selecciona dos atributos y pulsa Generar para ver la matriz de stock.",
+    "matrix-stock-header": "Stock para el almacén %warehouse%",
+    "matrix-row-header": "Valores",
+    "matrix-variant-error": "No se pudo crear la variante",
+    "matrix-select-two-attributes": "Debes seleccionar dos atributos para generar la matriz.",
+    "matrix-attributes-must-differ": "Los atributos X e Y deben ser distintos.",
+    "matrix-attribute-not-found": "No se encontró el atributo %code%.",
+    "matrix-selector-required": "El atributo %attribute% debe tener asignado un selector (1-4).",
+    "matrix-attributes-need-values": "Los atributos seleccionados deben tener valores definidos.",
+    "matrix-variant-create-error": "No se ha podido crear una de las variantes necesarias.",
+    "matrix-stock-updated": "Stock de la matriz actualizado correctamente."
+}

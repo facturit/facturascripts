@@ -1,0 +1,17 @@
+{
+    "matrix-attribute-x": "Attribute X",
+    "matrix-attribute-y": "Attribute Y",
+    "matrix-generate": "Generate",
+    "matrix-save": "Save matrix",
+    "matrix-select-help": "Select two attributes and click Generate to display the stock matrix.",
+    "matrix-stock-header": "Stock for warehouse %warehouse%",
+    "matrix-row-header": "Values",
+    "matrix-variant-error": "Variant could not be created",
+    "matrix-select-two-attributes": "You must select two attributes to build the matrix.",
+    "matrix-attributes-must-differ": "X and Y attributes must be different.",
+    "matrix-attribute-not-found": "Attribute %code% was not found.",
+    "matrix-selector-required": "Attribute %attribute% must have an assigned selector (1-4).",
+    "matrix-attributes-need-values": "Selected attributes must contain values.",
+    "matrix-variant-create-error": "One of the required variants could not be created.",
+    "matrix-stock-updated": "Matrix stock updated successfully."
+}

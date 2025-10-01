@@ -4,7 +4,9 @@
 /doc/
 /MyFiles/
 /node_modules/
-/Plugins/
+/Plugins/*
+!/Plugins/MatrizTallaColor/
+!/Plugins/MatrizTallaColor/**
 /vendor/
 .DS_Store
 .htaccess
