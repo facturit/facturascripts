@@ -4,7 +4,9 @@
 /doc/
 /MyFiles/
 /node_modules/
-/Plugins/
+/Plugins/*
+!/Plugins/Webhooks/
+!/Plugins/Webhooks/**
 /vendor/
 .DS_Store
 .htaccess
