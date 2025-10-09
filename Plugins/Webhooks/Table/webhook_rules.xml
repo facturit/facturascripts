@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<table>
+    <column>
+        <name>idwebhookrule</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>model</name>
+        <type>character varying(100)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>endpoint</name>
+        <type>character varying(255)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>description</name>
+        <type>character varying(150)</type>
+        <null>YES</null>
+    </column>
+    <column>
+        <name>condition_text</name>
+        <type>text</type>
+        <null>YES</null>
+    </column>
+    <column>
+        <name>active</name>
+        <type>boolean</type>
+        <null>NO</null>
+        <default>true</default>
+    </column>
+    <column>
+        <name>on_insert</name>
+        <type>boolean</type>
+        <null>NO</null>
+        <default>true</default>
+    </column>
+    <column>
+        <name>on_update</name>
+        <type>boolean</type>
+        <null>NO</null>
+        <default>true</default>
+    </column>
+    <constraint>
+        <name>webhook_rules_pkey</name>
+        <type>PRIMARY KEY (idwebhookrule)</type>
+    </constraint>
+    <index>
+        <name>webhook_rules_model_idx</name>
+        <fields>model</fields>
+    </index>
+</table>
