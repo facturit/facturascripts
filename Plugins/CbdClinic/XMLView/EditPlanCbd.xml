@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="plan" title="Plan CBD" icon="fa-solid fa-bottle-droplet" numcolumns="12">
+            <column name="estado" order="100" numcolumns="3">
+                <widget type="select" fieldname="estado_plan" icon="fa-solid fa-circle-notch">
+                    <values>
+                        <value value="Activo" title="Activo"/>
+                        <value value="En prueba" title="En prueba"/>
+                        <value value="Finalizado" title="Finalizado"/>
+                    </values>
+                </widget>
+            </column>
+            <column name="fecha-inicio" order="110" numcolumns="3">
+                <widget type="date" fieldname="fecha_inicio" icon="fa-solid fa-calendar-plus" required="true"/>
+            </column>
+            <column name="fecha-fin" order="120" numcolumns="3">
+                <widget type="date" fieldname="fecha_fin" icon="fa-solid fa-calendar-minus"/>
+            </column>
+            <column name="activo" order="130" numcolumns="3">
+                <widget type="checkbox" fieldname="activo" label="Plan activo"/>
+            </column>
+        </group>
+        <group name="producto" title="Producto" icon="fa-solid fa-prescription-bottle" numcolumns="12">
+            <column name="articulo" order="100" numcolumns="4">
+                <widget type="text" fieldname="codarticulo" icon="fa-solid fa-barcode" placeholder="Código artículo"/>
+            </column>
+            <column name="via" order="110" numcolumns="4">
+                <widget type="select" fieldname="via_administracion" icon="fa-solid fa-syringe">
+                    <values>
+                        <value value="sublingual" title="Sublingual"/>
+                        <value value="tópico" title="Tópico"/>
+                        <value value="cápsula" title="Cápsula"/>
+                        <value value="comestibles" title="Comestibles"/>
+                    </values>
+                </widget>
+            </column>
+            <column name="frecuencia" order="120" numcolumns="4">
+                <widget type="select" fieldname="frecuencia" icon="fa-solid fa-clock">
+                    <values>
+                        <value value="1/día" title="1/día"/>
+                        <value value="2/día" title="2/día"/>
+                        <value value="3/día" title="3/día"/>
+                        <value value="a demanda" title="A demanda"/>
+                        <value value="otro" title="Otro"/>
+                    </values>
+                </widget>
+            </column>
+            <column name="dosificacion" order="130" numcolumns="4">
+                <widget type="text" fieldname="dosificacion" icon="fa-solid fa-prescription" placeholder="Ej. 20 mg/día"/>
+            </column>
+            <column name="lote" order="140" numcolumns="4">
+                <widget type="text" fieldname="lote" icon="fa-solid fa-box"/>
+            </column>
+            <column name="espectro" order="150" numcolumns="4">
+                <widget type="text" fieldname="espectro" icon="fa-solid fa-wave-square" placeholder="Espectro"/>
+            </column>
+            <column name="porcentaje-cbd" order="160" numcolumns="4">
+                <widget type="number" fieldname="porcentaje_cbd" icon="fa-solid fa-droplet" min="0" max="100" step="0.1"/>
+            </column>
+            <column name="porcentaje-cbg" order="170" numcolumns="4">
+                <widget type="number" fieldname="porcentaje_cbg" icon="fa-solid fa-droplet" min="0" max="100" step="0.1"/>
+            </column>
+            <column name="thc" order="180" numcolumns="4">
+                <widget type="number" fieldname="thc_declarado" icon="fa-solid fa-flask" min="0" max="100" step="0.1"/>
+            </column>
+            <column name="coa" order="190" numcolumns="8">
+                <widget type="text" fieldname="url_coa" icon="fa-solid fa-file-contract" placeholder="URL COA"/>
+            </column>
+        </group>
+        <group name="seguimiento" title="Seguimiento" icon="fa-solid fa-chart-line" numcolumns="12">
+            <column name="instrucciones" order="100" numcolumns="12">
+                <widget type="textarea" fieldname="instrucciones" placeholder="Instrucciones de uso" rows="3"/>
+            </column>
+            <column name="efectividad" order="110" numcolumns="4">
+                <widget type="number" fieldname="efectividad_percibida" icon="fa-solid fa-star" min="0" max="10" step="1"/>
+            </column>
+            <column name="efectos-adversos" order="120" numcolumns="8">
+                <widget type="textarea" fieldname="efectos_adversos" placeholder="Efectos adversos referidos" rows="3"/>
+            </column>
+            <column name="notas" order="130" numcolumns="12">
+                <widget type="textarea" fieldname="notas_seguimiento" placeholder="Notas de seguimiento" rows="3"/>
+            </column>
+        </group>
+    </columns>
+</view>
