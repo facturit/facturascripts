@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="consentimiento" title="Consentimiento" icon="fa-solid fa-file-signature" numcolumns="12">
+            <column name="tipo" order="100" numcolumns="4">
+                <widget type="select" fieldname="tipo" icon="fa-solid fa-shield-heart">
+                    <values>
+                        <value value="tratamiento datos salud" title="Tratamiento datos salud"/>
+                        <value value="comunicaciones seguimiento" title="Comunicaciones seguimiento"/>
+                        <value value="cesión a terceros" title="Cesión a terceros"/>
+                    </values>
+                </widget>
+            </column>
+            <column name="fecha" order="110" numcolumns="4">
+                <widget type="datetime" fieldname="fecha_otorgado" icon="fa-solid fa-calendar-check" required="true"/>
+            </column>
+            <column name="medio" order="120" numcolumns="4">
+                <widget type="text" fieldname="medio" icon="fa-solid fa-tablet-screen-button" placeholder="Medio"/>
+            </column>
+            <column name="documento" order="130" numcolumns="6">
+                <widget type="text" fieldname="documento" icon="fa-solid fa-file" placeholder="Documento asociado"/>
+            </column>
+            <column name="revocado" order="140" numcolumns="3">
+                <widget type="checkbox" fieldname="revocado" label="Revocado"/>
+            </column>
+            <column name="fecha-revocacion" order="150" numcolumns="3">
+                <widget type="datetime" fieldname="fecha_revocacion" icon="fa-solid fa-calendar-xmark"/>
+            </column>
+            <column name="observaciones" order="160" numcolumns="12">
+                <widget type="textarea" fieldname="observaciones" placeholder="Observaciones" rows="3"/>
+            </column>
+        </group>
+    </columns>
+</view>

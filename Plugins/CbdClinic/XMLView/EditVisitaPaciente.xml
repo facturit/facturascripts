@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="general" title="Visita" icon="fa-solid fa-stethoscope" numcolumns="12">
+            <column name="fecha" order="100" numcolumns="4">
+                <widget type="datetime" fieldname="fecha_hora" icon="fa-solid fa-clock" required="true"/>
+            </column>
+            <column name="tipo" order="110" numcolumns="4">
+                <widget type="select" fieldname="tipo_visita" icon="fa-solid fa-notes-medical">
+                    <values>
+                        <value value="Primera" title="Primera"/>
+                        <value value="Seguimiento" title="Seguimiento"/>
+                        <value value="Incidencia" title="Incidencia"/>
+                        <value value="Telefónica" title="Telefónica"/>
+                        <value value="Online" title="Online"/>
+                        <value value="Presencial" title="Presencial"/>
+                    </values>
+                </widget>
+            </column>
+            <column name="canal" order="120" numcolumns="4">
+                <widget type="text" fieldname="canal" icon="fa-solid fa-headset" placeholder="Canal"/>
+            </column>
+            <column name="profesional" order="130" numcolumns="4">
+                <widget type="select" fieldname="profesional" icon="fa-solid fa-user-nurse">
+                    <values source="users" fieldcode="nick" fieldtitle="nick"/>
+                </widget>
+            </column>
+            <column name="dolencia" order="140" numcolumns="4">
+                <widget type="select" fieldname="id_dolencia" icon="fa-solid fa-heart-pulse">
+                    <values source="fs_med_dolencias" fieldcode="id_dolencia" fieldtitle="tipo"/>
+                </widget>
+            </column>
+            <column name="plan" order="150" numcolumns="4">
+                <widget type="select" fieldname="id_plan" icon="fa-solid fa-bottle-droplet">
+                    <values source="fs_med_planes_cbd" fieldcode="id_plan" fieldtitle="codarticulo"/>
+                </widget>
+            </column>
+        </group>
+        <group name="escalas" title="Escalas" icon="fa-solid fa-chart-simple" numcolumns="12">
+            <column name="dolor" order="100" numcolumns="4">
+                <widget type="number" fieldname="escala_dolor" icon="fa-solid fa-bolt" min="0" max="10" step="1"/>
+            </column>
+            <column name="ansiedad" order="110" numcolumns="4">
+                <widget type="number" fieldname="escala_ansiedad" icon="fa-solid fa-brain" min="0" max="10" step="1"/>
+            </column>
+            <column name="sueno" order="120" numcolumns="4">
+                <widget type="number" fieldname="escala_sueno" icon="fa-solid fa-moon" min="0" max="10" step="1"/>
+            </column>
+            <column name="peso" order="130" numcolumns="4">
+                <widget type="number" fieldname="peso" icon="fa-solid fa-weight-scale" step="0.1"/>
+            </column>
+            <column name="imc" order="140" numcolumns="4">
+                <widget type="number" fieldname="imc" icon="fa-solid fa-scale-balanced" step="0.1"/>
+            </column>
+        </group>
+        <group name="seguimiento" title="Seguimiento" icon="fa-solid fa-clipboard-list" numcolumns="12">
+            <column name="notas" order="100" numcolumns="12">
+                <widget type="textarea" fieldname="notas_visita" placeholder="Notas de visita" rows="4"/>
+            </column>
+            <column name="ajustes" order="110" numcolumns="12">
+                <widget type="textarea" fieldname="ajustes_plan" placeholder="Cambios de plan (JSON)" rows="3"/>
+            </column>
+            <column name="recomendaciones" order="120" numcolumns="12">
+                <widget type="textarea" fieldname="recomendaciones" placeholder="Recomendaciones no médicas" rows="3"/>
+            </column>
+            <column name="venta" order="130" numcolumns="6">
+                <widget type="text" fieldname="venta_origen" icon="fa-solid fa-receipt" placeholder="Venta asociada"/>
+            </column>
+            <column name="lote" order="140" numcolumns="6">
+                <widget type="text" fieldname="lote_utilizado" icon="fa-solid fa-box-open" placeholder="Lote aplicado"/>
+            </column>
+            <column name="proxima" order="150" numcolumns="6">
+                <widget type="datetime" fieldname="proxima_cita" icon="fa-solid fa-calendar-days"/>
+            </column>
+            <column name="recordatorio" order="160" numcolumns="6">
+                <widget type="checkbox" fieldname="recordatorios_enviados" label="Recordatorio enviado"/>
+            </column>
+            <column name="adjuntos" order="170" numcolumns="12">
+                <widget type="textarea" fieldname="adjuntos" placeholder="Referencias de adjuntos" rows="2"/>
+            </column>
+        </group>
+    </columns>
+</view>

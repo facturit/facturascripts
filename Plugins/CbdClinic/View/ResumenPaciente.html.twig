@@ -1,0 +1,130 @@
+{% set currentView = fsc.getCurrentView() %}
+{% set paciente = currentView.model %}
+{% set data = currentView.cursor %}
+
+<div class="container-fluid">
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2 class="mb-0">
+                <i class="fa-solid fa-user"></i>
+                {{ paciente.nombre }} {{ paciente.apellidos }}
+                <small class="text-muted">({{ paciente.codigo_paciente }})</small>
+            </h2>
+            <p class="text-muted mb-0">
+                Estado: <strong>{{ paciente.estado }}</strong>
+                {% if paciente.getEdad() %}
+                    · Edad: {{ paciente.getEdad() }} años
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-auto text-end">
+            <a class="btn btn-success mb-2" href="EditPaciente?code={{ paciente.idpaciente }}&activetab=ListVisitaPaciente">
+                <i class="fa-solid fa-user-md"></i> Nueva visita
+            </a>
+            <a class="btn btn-primary mb-2" href="EditPaciente?code={{ paciente.idpaciente }}&activetab=ListPlanCbd">
+                <i class="fa-solid fa-plus"></i> Nuevo plan
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fa-solid fa-calendar-check"></i> Próxima cita</h6>
+                    <p class="card-text h4">
+                        {{ data.proximaCita ? data.proximaCita|date('d/m/Y H:i') : 'Sin programar' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fa-solid fa-heart-pulse"></i> Dolencias activas</h6>
+                    <ul class="list-unstyled mb-0">
+                        {% for dolencia in data.dolencias %}
+                            <li>
+                                <strong>{{ dolencia.tipo }}</strong>
+                                <small class="text-muted"> · Intensidad {{ dolencia.intensidad }}/10</small>
+                            </li>
+                        {% else %}
+                            <li class="text-muted">Sin dolencias registradas</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fa-solid fa-bottle-droplet"></i> Plan activo</h6>
+                    {% if data.plan %}
+                        <p class="mb-1"><strong>{{ data.plan.codarticulo }}</strong></p>
+                        <p class="mb-1">{{ data.plan.dosificacion }} · {{ data.plan.frecuencia }}</p>
+                        <p class="mb-0 text-muted">CBD {{ data.plan.porcentaje_cbd ?: 'N/D' }}% · CBG {{ data.plan.porcentaje_cbg ?: 'N/D' }}%</p>
+                    {% else %}
+                        <p class="text-muted mb-0">Sin plan activo</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fa-solid fa-cart-shopping"></i> Última compra</h6>
+                    {% if data.ultimaCompra %}
+                        <p class="mb-1"><strong>{{ data.ultimaCompra.codigo }}</strong></p>
+                        <p class="mb-0 text-muted">{{ data.ultimaCompra.fecha|date('d/m/Y') }} · {{ data.ultimaCompra.pvptotal|number_format(2, ',', '.') }} €</p>
+                    {% else %}
+                        <p class="text-muted mb-0">Sin ventas vinculadas</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-lg-6 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fa-solid fa-bell"></i> Alertas</h5>
+                    {% if data.alertas %}
+                        <ul class="list-group list-group-flush">
+                            {% for clave, valor in data.alertas %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="me-3">
+                                        <strong>{{ clave|capitalize }}</strong>
+                                        <div class="text-muted">{{ valor }}</div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted mb-0">Sin alertas registradas.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fa-solid fa-stream"></i> Línea de tiempo</h5>
+                    <ul class="list-group list-group-flush">
+                        {% for evento in data.timeline %}
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <span class="badge bg-primary text-uppercase">{{ evento.tipo }}</span>
+                                    <small class="text-muted">{{ evento.fecha }}</small>
+                                </div>
+                                <div>{{ evento.descripcion }}</div>
+                            </li>
+                        {% else %}
+                            <li class="list-group-item text-muted">Aún no hay interacciones registradas.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

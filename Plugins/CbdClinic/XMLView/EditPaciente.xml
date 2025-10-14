@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="identidad" title="Identificación" icon="fa-solid fa-id-card" numcolumns="12">
+            <column name="codigo" order="100" numcolumns="3">
+                <widget type="text" fieldname="codigo_paciente" icon="fa-solid fa-hashtag" required="true" maxlength="20"/>
+            </column>
+            <column name="estado" order="110" numcolumns="3">
+                <widget type="select" fieldname="estado" icon="fa-solid fa-circle-dot">
+                    <values>
+                        <value value="Activo" title="Activo"/>
+                        <value value="Inactivo" title="Inactivo"/>
+                        <value value="Archivado" title="Archivado"/>
+                    </values>
+                </widget>
+            </column>
+            <column name="fecha-alta" order="120" numcolumns="3">
+                <widget type="date" fieldname="fecha_alta" icon="fa-solid fa-calendar-plus" required="true"/>
+            </column>
+            <column name="profesional" order="130" numcolumns="3">
+                <widget type="select" fieldname="profesional_asignado" icon="fa-solid fa-user-nurse">
+                    <values source="users" fieldcode="nick" fieldtitle="nick"/>
+                </widget>
+            </column>
+        </group>
+        <group name="cliente" title="Vinculación CRM" icon="fa-solid fa-user-tie" numcolumns="12">
+            <column name="codcliente" order="100" numcolumns="6">
+                <widget type="select" fieldname="codcliente" icon="fa-solid fa-user" titleurl="ListCliente" onclick="EditCliente">
+                    <values source="clientes" fieldcode="codcliente" fieldtitle="nombre"/>
+                </widget>
+            </column>
+            <column name="alertas-json" order="110" numcolumns="6">
+                <widget type="textarea" fieldname="banderas_alerta" icon="fa-solid fa-triangle-exclamation"
+                        placeholder="JSON de alertas (alergias, interacciones, restricciones)" rows="3"/>
+            </column>
+        </group>
+        <group name="datos-personales" title="Datos personales" icon="fa-solid fa-address-card" numcolumns="12">
+            <column name="nombre" order="100" numcolumns="4">
+                <widget type="text" fieldname="nombre" icon="fa-solid fa-user" required="true" maxlength="100"/>
+            </column>
+            <column name="apellidos" order="110" numcolumns="4">
+                <widget type="text" fieldname="apellidos" icon="fa-solid fa-user-pen" maxlength="150"/>
+            </column>
+            <column name="nif" order="120" numcolumns="4">
+                <widget type="text" fieldname="nif" icon="fa-solid fa-id-card" maxlength="15"/>
+            </column>
+            <column name="fecha-nacimiento" order="130" numcolumns="3">
+                <widget type="date" fieldname="fecha_nacimiento" icon="fa-solid fa-birthday-cake"/>
+            </column>
+            <column name="sexo" order="140" numcolumns="3">
+                <widget type="select" fieldname="sexo" icon="fa-solid fa-venus-mars">
+                    <values>
+                        <value value="F" title="F"/>
+                        <value value="M" title="M"/>
+                        <value value="No indica" title="No indica"/>
+                        <value value="Otro" title="Otro"/>
+                    </values>
+                </widget>
+            </column>
+        </group>
+        <group name="contacto" title="Contacto" icon="fa-solid fa-phone" numcolumns="12">
+            <column name="telefono" order="100" numcolumns="3">
+                <widget type="text" fieldname="telefono" icon="fa-solid fa-phone" maxlength="25"/>
+            </column>
+            <column name="telefono-secundario" order="110" numcolumns="3">
+                <widget type="text" fieldname="telefono_secundario" icon="fa-solid fa-phone-flip" maxlength="25"/>
+            </column>
+            <column name="email" order="120" numcolumns="6">
+                <widget type="email" fieldname="email" icon="fa-solid fa-envelope" maxlength="120"/>
+            </column>
+            <column name="direccion" order="130" numcolumns="6">
+                <widget type="text" fieldname="direccion" icon="fa-solid fa-location-dot" maxlength="200"/>
+            </column>
+            <column name="cp" order="140" numcolumns="2">
+                <widget type="text" fieldname="cp" icon="fa-solid fa-map-pin" maxlength="10"/>
+            </column>
+            <column name="ciudad" order="150" numcolumns="4">
+                <widget type="text" fieldname="ciudad" icon="fa-solid fa-city" maxlength="100"/>
+            </column>
+            <column name="provincia" order="160" numcolumns="3">
+                <widget type="text" fieldname="provincia" icon="fa-solid fa-map" maxlength="100"/>
+            </column>
+            <column name="pais" order="170" numcolumns="3">
+                <widget type="text" fieldname="pais" icon="fa-solid fa-globe" maxlength="100"/>
+            </column>
+        </group>
+        <group name="preferencias" title="Privacidad y comunicación" icon="fa-solid fa-shield-heart" numcolumns="12">
+            <column name="metodo-contacto" order="100" numcolumns="4">
+                <widget type="select" fieldname="metodo_contacto_preferido" icon="fa-solid fa-comments">
+                    <values>
+                        <value value="Tel" title="Tel"/>
+                        <value value="Email" title="Email"/>
+                        <value value="WhatsApp" title="WhatsApp"/>
+                        <value value="SMS" title="SMS"/>
+                    </values>
+                </widget>
+            </column>
+            <column name="no-marketing" order="110" numcolumns="4">
+                <widget type="checkbox" fieldname="privacidad_no_marketing" label="No marketing"/>
+            </column>
+            <column name="solo-seguimiento" order="120" numcolumns="4">
+                <widget type="checkbox" fieldname="privacidad_solo_seguimiento" label="Sólo comunicaciones de seguimiento"/>
+            </column>
+        </group>
+        <group name="notas" title="Notas internas" icon="fa-solid fa-note-sticky" numcolumns="12">
+            <column name="notas" order="100" numcolumns="12">
+                <widget type="textarea" fieldname="notas_internas" rows="4"/>
+            </column>
+        </group>
+    </columns>
+</view>

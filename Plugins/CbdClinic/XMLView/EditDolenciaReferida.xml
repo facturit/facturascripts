@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="dolencia" title="Dolencia referida" icon="fa-solid fa-heart-pulse" numcolumns="12">
+            <column name="tipo" order="100" numcolumns="4">
+                <widget type="select" fieldname="tipo" icon="fa-solid fa-heart-pulse">
+                    <values>
+                        <value value="dolor crónico" title="Dolor crónico"/>
+                        <value value="ansiedad" title="Ansiedad"/>
+                        <value value="insomnio" title="Insomnio"/>
+                        <value value="migraña" title="Migraña"/>
+                        <value value="inflamación" title="Inflamación"/>
+                        <value value="estrés" title="Estrés"/>
+                        <value value="otros" title="Otros"/>
+                    </values>
+                </widget>
+            </column>
+            <column name="intensidad" order="110" numcolumns="4">
+                <widget type="number" fieldname="intensidad" icon="fa-solid fa-temperature-three-quarters" min="0" max="10"
+                        step="1"/>
+            </column>
+            <column name="frecuencia" order="120" numcolumns="4">
+                <widget type="select" fieldname="frecuencia" icon="fa-solid fa-repeat">
+                    <values>
+                        <value value="diaria" title="Diaria"/>
+                        <value value="semanal" title="Semanal"/>
+                        <value value="esporádica" title="Esporádica"/>
+                    </values>
+                </widget>
+            </column>
+            <column name="fecha-inicio" order="130" numcolumns="4">
+                <widget type="date" fieldname="fecha_inicio_aprox" icon="fa-solid fa-calendar-day"/>
+            </column>
+            <column name="activo" order="140" numcolumns="2">
+                <widget type="checkbox" fieldname="activo" label="Activa"/>
+            </column>
+        </group>
+        <group name="detalles" title="Detalles" icon="fa-solid fa-notes-medical" numcolumns="12">
+            <column name="objetivos" order="100" numcolumns="12">
+                <widget type="textarea" fieldname="objetivos" placeholder="Objetivos terapéuticos" rows="2"/>
+            </column>
+            <column name="observaciones" order="110" numcolumns="12">
+                <widget type="textarea" fieldname="observaciones" placeholder="Observaciones" rows="3"/>
+            </column>
+            <column name="alergias" order="120" numcolumns="6">
+                <widget type="textarea" fieldname="alergias" placeholder="Alergias relevantes" rows="3"/>
+            </column>
+            <column name="medicacion" order="130" numcolumns="6">
+                <widget type="textarea" fieldname="medicacion_actual" placeholder="Medicación actual referida" rows="3"/>
+            </column>
+            <column name="contraindicaciones" order="140" numcolumns="12">
+                <widget type="textarea" fieldname="contraindicaciones" placeholder="Contraindicaciones conocidas" rows="3"/>
+            </column>
+        </group>
+    </columns>
+</view>

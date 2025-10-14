@@ -1,0 +1,47 @@
+{% set currentView = fsc.getCurrentView() %}
+{% set paciente = currentView.model %}
+{% set data = currentView.cursor %}
+
+<div class="container-fluid">
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> Banderas de alerta</h5>
+                    {% if data.alertas %}
+                        <ul class="list-group list-group-flush">
+                            {% for clave, valor in data.alertas %}
+                                <li class="list-group-item">
+                                    <strong>{{ clave|capitalize }}</strong>
+                                    <div class="text-muted">{{ valor }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted mb-0">No se han definido alertas especiales.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fa-solid fa-file-shield"></i> Preferencias de privacidad</h5>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item">
+                            Método preferido: <strong>{{ data.preferencias.metodo ?: 'Sin especificar' }}</strong>
+                        </li>
+                        <li class="list-group-item">
+                            No marketing: <strong>{{ data.preferencias.noMarketing ? 'Sí' : 'No' }}</strong>
+                        </li>
+                        <li class="list-group-item">
+                            Sólo seguimiento: <strong>{{ data.preferencias.soloSeguimiento ? 'Sí' : 'No' }}</strong>
+                        </li>
+                    </ul>
+                    <h6 class="card-subtitle mb-2 text-muted"><i class="fa-solid fa-note-sticky"></i> Notas internas</h6>
+                    <p class="card-text">{{ data.notas ?: 'Sin notas internas registradas.' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

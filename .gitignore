@@ -4,7 +4,9 @@
 /doc/
 /MyFiles/
 /node_modules/
-/Plugins/
+/Plugins/*
+!/Plugins/CbdClinic/
+!/Plugins/CbdClinic/**
 /vendor/
 .DS_Store
 .htaccess
