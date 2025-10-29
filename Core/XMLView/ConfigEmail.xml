@@ -68,6 +68,26 @@
                 <widget type="checkbox" fieldname="lowsecure"/>
             </column>
         </group>
+        <group name="msgraph" title="microsoft-graph" icon="fa-brands fa-microsoft" numcolumns="12">
+            <column name="msgraph-client-id" numcolumns="4" order="100">
+                <widget type="text" fieldname="msgraph_client_id" icon="fa-solid fa-id-badge"/>
+            </column>
+            <column name="msgraph-tenant-id" numcolumns="4" order="110">
+                <widget type="text" fieldname="msgraph_tenant_id" icon="fa-solid fa-building"/>
+            </column>
+            <column name="msgraph-client-secret" numcolumns="4" order="120">
+                <widget type="password" fieldname="msgraph_client_secret" icon="fa-solid fa-key"/>
+            </column>
+            <column name="msgraph-scopes" numcolumns="6" order="130" description="msgraph-scopes-help">
+                <widget type="text" fieldname="msgraph_scopes" icon="fa-solid fa-shield-alt"/>
+            </column>
+            <column name="msgraph-save-to-sent" numcolumns="3" order="140">
+                <widget type="checkbox" fieldname="msgraph_save_to_sent" title="msgraph-save-to-sent"/>
+            </column>
+            <column name="msgraph-redirect" numcolumns="6" order="150" description="msgraph-redirect-help">
+                <widget type="text" fieldname="msgraph_redirect_uri" readonly="true" icon="fa-solid fa-link"/>
+            </column>
+        </group>
         <group name="reply" title="reply" icon="fa-solid fa-reply" numcolumns="3">
             <column name="replytouseremail" title="email-replies" order="100">
                 <widget type="select" fieldname="replytouseremail" required="true" translate="true">
