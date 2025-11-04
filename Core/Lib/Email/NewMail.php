@@ -800,6 +800,12 @@ class NewMail
             case 'missing-refresh-token':
                 return Tools::trans('msgraph-token-missing');
 
+            case 'missing-password-credentials':
+                return Tools::trans('msgraph-password-missing');
+
+            case 'authorization-disabled':
+                return Tools::trans('msgraph-auth-disabled');
+
             default:
                 return $error;
         }

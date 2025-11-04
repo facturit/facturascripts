@@ -30,11 +30,16 @@ class MicrosoftGraphClient
     private const GRAPH_TOKEN_PATH = '/oauth2/v2.0/token';
     private const GRAPH_AUTH_PATH = '/oauth2/v2.0/authorize';
     private const GRAPH_API_URL = 'https://graph.microsoft.com/v1.0';
+    private const TOKEN_MODE_AUTHORIZATION_CODE = 'authorization_code';
+    private const TOKEN_MODE_PASSWORD = 'password';
 
     private string $tenantId;
     private string $clientId;
     private string $clientSecret;
     private string $scopes;
+    private string $tokenMode;
+    private string $username;
+    private string $password;
     private ?string $lastError = null;
 
     public function __construct()
@@ -43,6 +48,12 @@ class MicrosoftGraphClient
         $this->clientId = (string)Tools::settings('email', 'msgraph_client_id', '');
         $this->clientSecret = (string)Tools::settings('email', 'msgraph_client_secret', '');
         $this->scopes = trim((string)Tools::settings('email', 'msgraph_scopes', 'offline_access https://graph.microsoft.com/Mail.Send'));
+        $this->tokenMode = strtolower((string)Tools::settings('email', 'msgraph_token_mode', self::TOKEN_MODE_AUTHORIZATION_CODE));
+        if (!in_array($this->tokenMode, [self::TOKEN_MODE_AUTHORIZATION_CODE, self::TOKEN_MODE_PASSWORD], true)) {
+            $this->tokenMode = self::TOKEN_MODE_AUTHORIZATION_CODE;
+        }
+        $this->username = (string)Tools::settings('email', 'msgraph_username', '');
+        $this->password = (string)Tools::settings('email', 'msgraph_password', '');
     }
 
     public function getRedirectUri(): string
@@ -57,7 +68,15 @@ class MicrosoftGraphClient
 
     public function hasClientConfiguration(): bool
     {
-        return !empty($this->clientId) && !empty($this->clientSecret) && !empty($this->tenantId);
+        if (empty($this->clientId) || empty($this->clientSecret) || empty($this->tenantId)) {
+            return false;
+        }
+
+        if ($this->usesPasswordMode()) {
+            return $this->hasPasswordCredentials();
+        }
+
+        return true;
     }
 
     public function hasRefreshToken(): bool
@@ -67,7 +86,15 @@ class MicrosoftGraphClient
 
     public function isReadyToSend(): bool
     {
-        return $this->hasClientConfiguration() && $this->hasRefreshToken();
+        if (false === $this->hasClientConfiguration()) {
+            return false;
+        }
+
+        if ($this->usesPasswordMode()) {
+            return true;
+        }
+
+        return $this->hasRefreshToken();
     }
 
     public function getLastError(): ?string
@@ -77,6 +104,11 @@ class MicrosoftGraphClient
 
     public function getAuthorizationUrl(string $state): ?string
     {
+        if (!$this->usesAuthorizationCodeMode()) {
+            $this->lastError = 'authorization-disabled';
+            return null;
+        }
+
         if (false === $this->hasClientConfiguration()) {
             $this->lastError = 'missing-configuration';
             return null;
@@ -98,6 +130,11 @@ class MicrosoftGraphClient
 
     public function exchangeCode(string $code): bool
     {
+        if (!$this->usesAuthorizationCodeMode()) {
+            $this->lastError = 'authorization-disabled';
+            return false;
+        }
+
         $params = [
             'client_id' => $this->clientId,
             'scope' => $this->scopes,
@@ -112,6 +149,10 @@ class MicrosoftGraphClient
 
     public function refreshAccessToken(): bool
     {
+        if ($this->usesPasswordMode()) {
+            return $this->requestPasswordToken();
+        }
+
         $refreshToken = $this->getStoredRefreshToken();
         if (empty($refreshToken)) {
             $this->lastError = 'missing-refresh-token';
@@ -213,6 +254,25 @@ class MicrosoftGraphClient
         }
 
         return $this->getStoredAccessToken();
+    }
+
+    private function requestPasswordToken(): bool
+    {
+        if (!$this->hasPasswordCredentials()) {
+            $this->lastError = 'missing-password-credentials';
+            return false;
+        }
+
+        $params = [
+            'client_id' => $this->clientId,
+            'scope' => $this->scopes,
+            'grant_type' => 'password',
+            'client_secret' => $this->clientSecret,
+            'username' => $this->username,
+            'password' => $this->password
+        ];
+
+        return $this->requestToken($params);
     }
 
     private function requestToken(array $params): bool
@@ -325,5 +385,20 @@ class MicrosoftGraphClient
         }
 
         return (string)$body;
+    }
+
+    private function usesAuthorizationCodeMode(): bool
+    {
+        return $this->tokenMode === self::TOKEN_MODE_AUTHORIZATION_CODE;
+    }
+
+    private function usesPasswordMode(): bool
+    {
+        return $this->tokenMode === self::TOKEN_MODE_PASSWORD;
+    }
+
+    private function hasPasswordCredentials(): bool
+    {
+        return '' !== $this->username && '' !== $this->password;
     }
 }

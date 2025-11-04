@@ -195,8 +195,22 @@ class ConfigEmail extends PanelController
                 if (empty($view->model->msgraph_scopes)) {
                     $view->model->msgraph_scopes = Tools::settings('email', 'msgraph_scopes', 'offline_access https://graph.microsoft.com/Mail.Send');
                 }
+                $tokenMode = strtolower((string)$view->model->msgraph_token_mode);
+                if (empty($tokenMode)) {
+                    $tokenMode = strtolower((string)Tools::settings('email', 'msgraph_token_mode', 'authorization_code'));
+                }
+                if (!in_array($tokenMode, ['authorization_code', 'password'], true)) {
+                    $tokenMode = 'authorization_code';
+                }
+                $view->model->msgraph_token_mode = $tokenMode;
                 if ($view->model->msgraph_save_to_sent === null) {
                     $view->model->msgraph_save_to_sent = Tools::settings('email', 'msgraph_save_to_sent', '1');
+                }
+                if ($view->model->msgraph_username === null) {
+                    $view->model->msgraph_username = Tools::settings('email', 'msgraph_username', '');
+                }
+                if ($view->model->msgraph_password === null) {
+                    $view->model->msgraph_password = Tools::settings('email', 'msgraph_password', '');
                 }
                 if ($view->model->mailer === 'SMTP') {
                     // añadimos el botón test
@@ -206,7 +220,7 @@ class ConfigEmail extends PanelController
                         'icon' => 'fa-solid fa-envelope',
                         'label' => 'test'
                     ]);
-                } elseif ($view->model->mailer === 'MSGraph') {
+                } elseif ($view->model->mailer === 'MSGraph' && strtolower((string)$view->model->msgraph_token_mode) !== 'password') {
                     $this->addButton($viewName, [
                         'action' => 'msgraph-auth',
                         'color' => 'primary',
@@ -253,6 +267,12 @@ class ConfigEmail extends PanelController
             return;
         }
 
+        $tokenMode = strtolower((string)Tools::settings('email', 'msgraph_token_mode', 'authorization_code'));
+        if ($tokenMode === 'password') {
+            Tools::log()->warning('msgraph-auth-disabled');
+            return;
+        }
+
         if (Tools::settings('email', 'mailer') !== 'MSGraph') {
             Tools::log()->warning('msgraph-auth-missing-config');
             return;
@@ -280,6 +300,13 @@ class ConfigEmail extends PanelController
 
     protected function msgraphCallbackAction(): void
     {
+        $tokenMode = strtolower((string)Tools::settings('email', 'msgraph_token_mode', 'authorization_code'));
+        if ($tokenMode === 'password') {
+            Tools::log()->warning('msgraph-auth-disabled');
+            $this->redirect($this->url());
+            return;
+        }
+
         $state = (string)$this->request->query->get('state', '');
         $storedState = (string)Session::get('msgraph_state');
         Session::set('msgraph_state', null);
@@ -329,6 +356,12 @@ class ConfigEmail extends PanelController
 
             case 'missing-refresh-token':
                 return Tools::trans('msgraph-token-missing');
+
+            case 'missing-password-credentials':
+                return Tools::trans('msgraph-password-missing');
+
+            case 'authorization-disabled':
+                return Tools::trans('msgraph-auth-disabled');
 
             default:
                 return $error;

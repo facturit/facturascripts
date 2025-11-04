@@ -1797,12 +1797,16 @@
     "microsoft-graph": "Microsoft 365 (Graph)",
     "msgraph-authorize": "Conectar con Microsoft 365",
     "msgraph-auth-error": "La autorización de Microsoft 365 ha fallado: %error%",
+    "msgraph-auth-disabled": "La autorización mediante inicio de sesión está desactivada mientras el modo de token por API esté activo.",
     "msgraph-auth-missing-config": "Introduce el Client ID, Tenant ID y Client Secret de Microsoft 365 antes de iniciar la autorización.",
     "msgraph-auth-success": "Autorización de Microsoft 365 completada correctamente.",
     "msgraph-client-id": "Client ID",
     "msgraph-client-secret": "Secreto de cliente",
+    "msgraph-credentials-help": "Solo necesario cuando se usa el modo de token por API (usuario y contraseña).",
     "msgraph-redirect": "URI de redirección",
     "msgraph-redirect-help": "Registra esta URI de redirección en tu aplicación de Azure.",
+    "msgraph-password": "Contraseña",
+    "msgraph-password-missing": "Introduce el usuario y la contraseña de Microsoft 365 para solicitar tokens por API.",
     "msgraph-save-to-sent": "Guardar en elementos enviados de Outlook",
     "msgraph-scopes": "Ámbitos",
     "msgraph-scopes-help": "Ámbitos separados por espacios. Predeterminado: offline_access https://graph.microsoft.com/Mail.Send",
@@ -1810,5 +1814,10 @@
     "msgraph-state-mismatch": "No se pudo validar la respuesta de autorización de Microsoft 365. Inténtalo de nuevo.",
     "msgraph-tenant-id": "Tenant ID",
     "msgraph-test-error": "La prueba de conexión con Microsoft 365 ha fallado: %error%",
-    "msgraph-token-missing": "Vuelve a autorizar Microsoft 365 para renovar los permisos de acceso."
+    "msgraph-token-missing": "Vuelve a autorizar Microsoft 365 para renovar los permisos de acceso.",
+    "msgraph-token-mode": "Obtención del token",
+    "msgraph-token-mode-auth": "Iniciar sesión con Microsoft",
+    "msgraph-token-mode-help": "Elige cómo debe obtener FacturaScripts los tokens de Microsoft 365.",
+    "msgraph-token-mode-password": "Petición API (usuario y contraseña)",
+    "msgraph-username": "Usuario"
 }
