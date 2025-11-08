@@ -1470,6 +1470,8 @@
     "show-price": "Preis im Druck anzeigen",
     "show-quantity": "Menge bei Druck anzeigen",
     "show-section-new": "Neuen Abschnitt anzeigen",
+    "signature-instructions": "Unterschreiben Sie mit der Maus oder dem Finger und klicken Sie auf Speichern, um die Unterschrift mit den Daten des Unterzeichners anzuhängen.",
+    "signature-requires-saved-document": "Speichern Sie das Dokument, bevor Sie eine Unterschrift erfassen.",
     "signature": "Unterschrift",
     "simple": "Einfach",
     "simplified": "Vereinfacht",

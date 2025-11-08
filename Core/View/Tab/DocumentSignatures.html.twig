@@ -1,0 +1,367 @@
+{% set currentView = fsc.getCurrentView() %}
+{% set firstView = fsc.views | first %}
+{% set doc = firstView.model %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            {% if doc.id() %}
+                {% if fsc.permissions.allowUpdate %}
+                    <form action="{{ doc.url() }}" method="post" onsubmit="return prepareSignatureSubmit(this);">
+                        <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+                        <input type="hidden" name="action" value="save-signature"/>
+                        <input type="hidden" name="signature_image" id="signatureImageInput"/>
+                        {{ formToken() }}
+                        <div class="card border-primary shadow-sm mb-4">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="card-title mb-1">
+                                    <i class="fa-solid fa-pen-nib fa-fw"></i> {{ trans('signature') }}
+                                </h5>
+                                <p class="text-muted small mb-0">{{ trans('signature-instructions') }}</p>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-lg-4">
+                                        <div class="mb-3">
+                                            <label for="signatureSignerName" class="form-label">{{ trans('name') }} *</label>
+                                            <input type="text" class="form-control" id="signatureSignerName" name="signer_name" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="signatureSignerEmail" class="form-label">{{ trans('email') }}</label>
+                                            <input type="email" class="form-control" id="signatureSignerEmail" name="signer_email">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="signatureSignerPhone" class="form-label">{{ trans('phone') }}</label>
+                                            <input type="tel" class="form-control" id="signatureSignerPhone" name="signer_phone">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="signatureSignerId" class="form-label">{{ trans('cifnif') }}</label>
+                                            <input type="text" class="form-control" id="signatureSignerId" name="signer_id">
+                                        </div>
+                                        <div class="mb-0">
+                                            <label for="signatureSignerNotes" class="form-label">{{ trans('observations') }}</label>
+                                            <textarea class="form-control" id="signatureSignerNotes" name="signer_notes" rows="3"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-8">
+                                        <div class="signature-board border rounded bg-white position-relative shadow-sm">
+                                            <canvas id="signatureCanvas"></canvas>
+                                            <div id="signaturePlaceholder" class="signature-placeholder text-muted">
+                                                <i class="fa-regular fa-hand-point-up me-1"></i>{{ trans('signature') }}
+                                            </div>
+                                        </div>
+                                        <div class="d-flex flex-wrap justify-content-between align-items-center mt-3 gap-2 signature-toolbar">
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" id="signatureUndoButton" disabled>
+                                                    <i class="fa-solid fa-rotate-left"></i> {{ trans('undo') }}
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" id="signatureResetButton" disabled>
+                                                    <i class="fa-solid fa-eraser"></i> {{ trans('reset') }}
+                                                </button>
+                                            </div>
+                                            <div class="text-muted small">
+                                                <i class="fa-solid fa-shield-check me-1"></i>{{ trans('contact-data') }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white text-end">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fa-solid fa-save fa-fw"></i> {{ trans('save') }}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fa-solid fa-info-circle me-2"></i>{{ trans('signature-requires-saved-document') }}
+                </div>
+            {% endif %}
+
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+                {% for signature in currentView.cursor %}
+                    <div class="col">
+                        <form action="{{ doc.url() }}" method="post" onsubmit="return confirmDeleteSignature(this);">
+                            <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+                            <input type="hidden" name="id" value="{{ signature.iddocsignature }}"/>
+                            <input type="hidden" name="action" value="delete-signature"/>
+                            {{ formToken() }}
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="ratio ratio-16x9 bg-light border rounded mb-3">
+                                        {% if signature.getImageUrl() %}
+                                            <img src="{{ signature.getImageUrl() }}" class="img-fluid object-fit-contain p-2" alt="{{ trans('signature') }}">
+                                        {% else %}
+                                            <div class="d-flex align-items-center justify-content-center text-muted">{{ trans('no-data') }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <h5 class="card-title">{{ signature.signer_name }}</h5>
+                                    <ul class="list-unstyled small mb-3">
+                                        {% if signature.signer_email %}
+                                            <li><i class="fa-solid fa-at me-2"></i><a href="mailto:{{ signature.signer_email }}">{{ signature.signer_email }}</a></li>
+                                        {% endif %}
+                                        {% if signature.signer_phone %}
+                                            <li><i class="fa-solid fa-phone me-2"></i><a href="tel:{{ signature.signer_phone }}">{{ signature.signer_phone }}</a></li>
+                                        {% endif %}
+                                        {% if signature.signer_id %}
+                                            <li><i class="fa-solid fa-id-card me-2"></i>{{ signature.signer_id }}</li>
+                                        {% endif %}
+                                        <li><i class="fa-solid fa-calendar-days me-2"></i>{{ signature.signed_at }}</li>
+                                        {% if signature.ip_address %}
+                                            <li><i class="fa-solid fa-network-wired me-2"></i>{{ trans('ip') }}: {{ signature.ip_address }}</li>
+                                        {% endif %}
+                                        {% if signature.user_agent %}
+                                            <li class="text-break"><i class="fa-solid fa-globe me-2"></i>{{ trans('browser') }}: {{ signature.user_agent }}</li>
+                                        {% endif %}
+                                        {% if signature.nick %}
+                                            <li><i class="fa-solid fa-user-check me-2"></i>{{ trans('user') }}: {{ signature.nick }}</li>
+                                        {% endif %}
+                                    </ul>
+                                    {% if signature.signer_notes %}
+                                        <div class="small text-muted border-start ps-3">{{ signature.signer_notes }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                                    {% if signature.getImageUrl(true) %}
+                                        <a href="{{ signature.getImageUrl(true) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i> {{ trans('open') }}
+                                        </a>
+                                    {% endif %}
+                                    {% if fsc.permissions.allowDelete %}
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="fa-solid fa-trash"></i> {{ trans('delete') }}
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="col">
+                        <div class="alert alert-light border text-center text-muted mb-0">{{ trans('no-data') }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .signature-board {
+        min-height: 260px;
+    }
+
+    #signatureCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+        cursor: crosshair;
+        border-radius: .5rem;
+    }
+
+    .signature-placeholder {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        text-align: center;
+        font-size: .95rem;
+    }
+
+    .signature-toolbar .btn {
+        min-width: 90px;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var canvas = document.getElementById('signatureCanvas');
+        if (!canvas) {
+            return;
+        }
+
+        var hiddenInput = document.getElementById('signatureImageInput');
+        var nameInput = document.getElementById('signatureSignerName');
+        var placeholder = document.getElementById('signaturePlaceholder');
+        var undoButton = document.getElementById('signatureUndoButton');
+        var resetButton = document.getElementById('signatureResetButton');
+        var messages = {
+            nameRequired: '{{ trans('field-required', {'%field%': trans('name')})|e('js') }}',
+            signatureRequired: '{{ trans('field-required', {'%field%': trans('signature')})|e('js') }}'
+        };
+
+        var ctx = canvas.getContext('2d');
+        var strokes = [];
+        var drawing = false;
+
+        function resizeCanvas() {
+            var container = canvas.parentElement;
+            var ratio = window.devicePixelRatio || 1;
+            var width = container.clientWidth;
+            var height = Math.max(240, Math.round(width * 0.45));
+
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+            canvas.width = Math.floor(width * ratio);
+            canvas.height = Math.floor(height * ratio);
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(ratio, ratio);
+            drawStrokes();
+        }
+
+        function updateUiState() {
+            var hasStroke = strokes.some(function (stroke) {
+                return stroke.length > 0;
+            });
+
+            if (placeholder) {
+                placeholder.classList.toggle('d-none', hasStroke);
+            }
+
+            if (undoButton) {
+                undoButton.disabled = !hasStroke;
+            }
+
+            if (resetButton) {
+                resetButton.disabled = !hasStroke;
+            }
+        }
+
+        function drawStrokes() {
+            var ratio = window.devicePixelRatio || 1;
+            var width = canvas.width / ratio;
+            var height = canvas.height / ratio;
+
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            ctx.strokeStyle = '#111111';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            strokes.forEach(function (stroke) {
+                if (!stroke.length) {
+                    return;
+                }
+
+                if (stroke.length === 1) {
+                    ctx.beginPath();
+                    ctx.arc(stroke[0].x, stroke[0].y, ctx.lineWidth / 2, 0, Math.PI * 2);
+                    ctx.fillStyle = '#111111';
+                    ctx.fill();
+                    ctx.fillStyle = '#ffffff';
+                    return;
+                }
+
+                ctx.beginPath();
+                ctx.moveTo(stroke[0].x, stroke[0].y);
+                for (var i = 1; i < stroke.length; i++) {
+                    ctx.lineTo(stroke[i].x, stroke[i].y);
+                }
+                ctx.stroke();
+            });
+
+            updateUiState();
+        }
+
+        function getPoint(event) {
+            var rect = canvas.getBoundingClientRect();
+            return {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
+            };
+        }
+
+        function startDrawing(event) {
+            event.preventDefault();
+            drawing = true;
+            canvas.setPointerCapture(event.pointerId);
+            strokes.push([getPoint(event)]);
+            drawStrokes();
+        }
+
+        function continueDrawing(event) {
+            if (!drawing) {
+                return;
+            }
+
+            event.preventDefault();
+            var stroke = strokes[strokes.length - 1];
+            stroke.push(getPoint(event));
+            drawStrokes();
+        }
+
+        function stopDrawing(event) {
+            if (!drawing) {
+                return;
+            }
+
+            event.preventDefault();
+            drawing = false;
+            try {
+                canvas.releasePointerCapture(event.pointerId);
+            } catch (e) {
+                // ignore if pointer capture was not set
+            }
+            updateUiState();
+        }
+
+        if (undoButton) {
+            undoButton.addEventListener('click', function () {
+                strokes.pop();
+                drawStrokes();
+            });
+        }
+
+        if (resetButton) {
+            resetButton.addEventListener('click', function () {
+                strokes = [];
+                hiddenInput.value = '';
+                drawStrokes();
+            });
+        }
+
+        canvas.addEventListener('pointerdown', startDrawing);
+        canvas.addEventListener('pointermove', continueDrawing);
+        canvas.addEventListener('pointerup', stopDrawing);
+        canvas.addEventListener('pointerleave', stopDrawing);
+        canvas.addEventListener('pointercancel', stopDrawing);
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        window.prepareSignatureSubmit = function (form) {
+            if (!nameInput.value.trim()) {
+                alert(messages.nameRequired);
+                nameInput.focus();
+                return false;
+            }
+
+            var hasStroke = strokes.some(function (stroke) {
+                return stroke.length > 0;
+            });
+
+            if (!hasStroke) {
+                alert(messages.signatureRequired);
+                return false;
+            }
+
+            hiddenInput.value = canvas.toDataURL('image/png');
+            animateSpinner('add');
+            return true;
+        };
+    });
+
+    window.confirmDeleteSignature = function (form) {
+        if (!confirm('{{ trans('are-you-sure-action')|e('js') }}')) {
+            return false;
+        }
+
+        animateSpinner('add');
+        return true;
+    };
+</script>

@@ -1470,6 +1470,8 @@
     "show-price": "Mostrar precio en la impresión",
     "show-quantity": "Mostrar cantidad en la impresión",
     "show-section-new": "Mostrar sección crear",
+    "signature-instructions": "Firma con el dedo o el ratón y pulsa Guardar para adjuntar la firma junto con los datos del firmante.",
+    "signature-requires-saved-document": "Guarda el documento antes de capturar una firma.",
     "signature": "Firma",
     "simple": "Simple",
     "simplified": "Simplificada",

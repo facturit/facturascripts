@@ -1470,6 +1470,8 @@
     "show-price": "Mostrar el preu en l'impressió",
     "show-quantity": "Mostrar la cantitat en l'impressió",
     "show-section-new": "Mostrar secció crear",
+    "signature-instructions": "Signa amb el dit o amb el ratolí i prem Guardar per adjuntar la signatura junt amb les dades del signant.",
+    "signature-requires-saved-document": "Guarda el document abans de capturar una signatura.",
     "signature": "Signature",
     "simple": "Simple",
     "simplified": "Simplificada",

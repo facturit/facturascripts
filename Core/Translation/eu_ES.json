@@ -1470,6 +1470,8 @@
     "show-price": "Prezioa inprimatzean bistaratu",
     "show-quantity": "Kopurua inprimatzean bistaratu",
     "show-section-new": "Sortu atalik erakutsi",
+    "signature-instructions": "Sinatu hatzarekin edo saguarekin eta sakatu Gorde sinadura eta sinatzailearen datuak eransteko.",
+    "signature-requires-saved-document": "Gorde dokumentua sinadura bat jasotzen aurretik.",
     "signature": "Sinadura",
     "simple": "Sinplea",
     "simplified": "Simplifikatua",
