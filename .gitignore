@@ -4,7 +4,9 @@
 /doc/
 /MyFiles/
 /node_modules/
-/Plugins/
+/Plugins/*
+!/Plugins/BiometricSignature/
+!/Plugins/BiometricSignature/**
 /vendor/
 .DS_Store
 .htaccess
