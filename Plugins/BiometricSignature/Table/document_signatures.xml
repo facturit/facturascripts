@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : document_signatures.xml
+    Author     : BiometricSignature plugin
+    Description:
+        Structure for the document_signatures table.
+-->
+<table>
+    <column>
+        <name>iddocsignature</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>model</name>
+        <type>character varying(50)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>modelcode</name>
+        <type>character varying(50)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>modelid</name>
+        <type>integer</type>
+        <null>NO</null>
+        <default>0</default>
+    </column>
+    <column>
+        <name>signer_name</name>
+        <type>character varying(120)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>signer_email</name>
+        <type>character varying(120)</type>
+    </column>
+    <column>
+        <name>signer_phone</name>
+        <type>character varying(40)</type>
+    </column>
+    <column>
+        <name>signer_id</name>
+        <type>character varying(60)</type>
+    </column>
+    <column>
+        <name>signer_notes</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>signed_at</name>
+        <type>timestamp without time zone</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>ip_address</name>
+        <type>character varying(45)</type>
+    </column>
+    <column>
+        <name>user_agent</name>
+        <type>character varying(255)</type>
+    </column>
+    <column>
+        <name>nick</name>
+        <type>character varying(30)</type>
+    </column>
+    <column>
+        <name>signature_path</name>
+        <type>character varying(255)</type>
+        <null>NO</null>
+    </column>
+    <constraint>
+        <name>document_signatures_pkey</name>
+        <type>PRIMARY KEY (iddocsignature)</type>
+    </constraint>
+</table>
