@@ -1,0 +1,14 @@
+{
+    "webhook-rules": "Webhooks",
+    "webhook-rule": "Regla de webhook",
+    "invalid-webhook-condition": "Condición de webhook no válida: %condition%",
+    "webhook-request-failed": "No se pudo enviar el webhook a %endpoint%: %error%",
+    "condition-text": "Condición",
+    "condition_text": "Condición",
+    "previous_condition_text": "Condición previa",
+    "model": "Modelo",
+    "on-insert": "Al crear",
+    "on-update": "Al actualizar",
+    "on_insert": "Al crear",
+    "on_update": "Al actualizar"
+}

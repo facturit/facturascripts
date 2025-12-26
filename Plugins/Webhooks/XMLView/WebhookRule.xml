@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <column name="description" order="10">
+            <widget type="text" fieldname="description" placeholder="Descripción" />
+        </column>
+        <column name="model" order="20">
+            <widget type="select" fieldname="model" required="true">
+                <values />
+            </widget>
+        </column>
+        <column name="endpoint" order="30">
+            <widget type="text" fieldname="endpoint" placeholder="https://..." />
+        </column>
+        <column name="active" order="40">
+            <widget type="checkbox" fieldname="active" />
+        </column>
+        <column name="on_insert" order="50">
+            <widget type="checkbox" fieldname="on_insert" />
+        </column>
+        <column name="on_update" order="60">
+            <widget type="checkbox" fieldname="on_update" />
+        </column>
+        <column name="condition_text" order="70">
+            <widget type="textarea" fieldname="condition_text" rows="2" placeholder="serie = X; estado = 3" />
+        </column>
+        <column name="previous_condition_text" order="80">
+            <widget type="textarea" fieldname="previous_condition_text" rows="2" placeholder="estado = 3" />
+        </column>
+    </columns>
+</view>
