@@ -2,6 +2,8 @@
 namespace FacturaScripts\Plugins\Webhooks;
 
 use FacturaScripts\Core\DbUpdater;
+use FacturaScripts\Core\Lib\ExtendedController\ListController as BaseListController;
+use FacturaScripts\Core\Lib\ExtendedController\PanelController as BasePanelController;
 use FacturaScripts\Core\Template\InitClass;
 use FacturaScripts\Plugins\Webhooks\Lib\ModelInspector;
 
@@ -13,6 +15,9 @@ class Init extends InitClass
         foreach (ModelInspector::extendableModels() as $className) {
             $className::addExtension($extension);
         }
+
+        BasePanelController::addExtension(new Extension\Controller\Lib\ExtendedController\PanelController());
+        BaseListController::addExtension(new Extension\Controller\Lib\ExtendedController\ListController());
     }
 
     public function uninstall(): void

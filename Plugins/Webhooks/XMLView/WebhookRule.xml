@@ -21,10 +21,13 @@
         <column name="on_update" order="60">
             <widget type="checkbox" fieldname="on_update" />
         </column>
-        <column name="condition_text" order="70">
+        <column name="on_action" order="70">
+            <widget type="checkbox" fieldname="on_action" />
+        </column>
+        <column name="condition_text" order="80">
             <widget type="textarea" fieldname="condition_text" rows="2" placeholder="serie = X; estado = 3" />
         </column>
-        <column name="previous_condition_text" order="80">
+        <column name="previous_condition_text" order="90">
             <widget type="textarea" fieldname="previous_condition_text" rows="2" placeholder="estado = 3" />
         </column>
     </columns>

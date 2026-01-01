@@ -16,6 +16,7 @@ class WebhookRule extends BaseModelClass
     public $description;
     public $condition_text;
     public $previous_condition_text;
+    public $on_action;
     public $active;
     public $on_insert;
     public $on_update;
@@ -26,6 +27,7 @@ class WebhookRule extends BaseModelClass
         $this->active = true;
         $this->on_insert = true;
         $this->on_update = true;
+        $this->on_action = false;
     }
 
     public static function primaryColumn(): string
@@ -49,6 +51,8 @@ class WebhookRule extends BaseModelClass
             $where[] = Where::eq('on_insert', true);
         } elseif ('update' === $event) {
             $where[] = Where::eq('on_update', true);
+        } elseif ('action' === $event) {
+            $where[] = Where::eq('on_action', true);
         }
 
         return self::all($where, ['idwebhookrule' => 'ASC']);

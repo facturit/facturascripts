@@ -9,6 +9,11 @@
     "model": "Modelo",
     "on-insert": "Al crear",
     "on-update": "Al actualizar",
+    "on-action": "Por acción",
     "on_insert": "Al crear",
-    "on_update": "Al actualizar"
+    "on_update": "Al actualizar",
+    "on_action": "Por acción",
+    "webhook-action": "Enviar webhook",
+    "webhook-dispatched": "Webhook enviado a %endpoint% (%event%)",
+    "webhook-no-codes": "Selecciona al menos un registro"
 }

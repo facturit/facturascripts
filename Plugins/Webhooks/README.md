@@ -8,6 +8,7 @@ Este plugin añade una pantalla de configuración (ListWebhookRule) desde la que
 - Condiciones de disparo basadas en comparaciones sencillas (por ejemplo `codserie = X; estado = 3`).
 - Condiciones previas opcionales para comprobar el estado anterior en actualizaciones (por ejemplo `estado = 3` para detectar transiciones `3 -> 5`).
 - Envío de todo el contenido del modelo como JSON. En documentos de venta/compra el JSON incluye los datos de cabecera y las líneas del documento.
+- Disparo manual mediante botón en los listados y formularios de edición para las reglas marcadas como "Por acción".
 
 ## Formato de las condiciones
 
@@ -35,6 +36,8 @@ En el caso de documentos (`getLines()` disponible), la clave `data` incluye:
 ```
 
 Además, el payload incorpora la sección `previous` con los valores previos al guardado (cabecera y líneas vacías en documentos) y `user.nick` cuando la sesión activa lo proporciona.
+
+Para las reglas con la opción **Por acción** se envía el evento `action` con el modelo y los códigos seleccionados en listados o, en edición, el registro completo.
 
 ## Desinstalación
 
