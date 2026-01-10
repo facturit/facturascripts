@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Table definition for KPI dashboard sharing rules.
+-->
+<table>
+    <column>
+        <name>id</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>iddashboard</name>
+        <type>integer</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>sharetype</name>
+        <type>character varying(20)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>nick</name>
+        <type>character varying(50)</type>
+    </column>
+    <column>
+        <name>codrole</name>
+        <type>character varying(20)</type>
+    </column>
+    <column>
+        <name>canedit</name>
+        <type>boolean</type>
+        <default>false</default>
+    </column>
+    <constraint>
+        <name>kpi_dashboard_shares_pkey</name>
+        <type>PRIMARY KEY (id)</type>
+    </constraint>
+    <constraint>
+        <name>kpi_dashboard_shares_dashboard_fk</name>
+        <type>FOREIGN KEY (iddashboard) REFERENCES kpi_dashboards (id) ON DELETE CASCADE ON UPDATE CASCADE</type>
+    </constraint>
+    <constraint>
+        <name>kpi_dashboard_shares_nick_fk</name>
+        <type>FOREIGN KEY (nick) REFERENCES users (nick) ON DELETE SET NULL ON UPDATE CASCADE</type>
+    </constraint>
+    <constraint>
+        <name>kpi_dashboard_shares_role_fk</name>
+        <type>FOREIGN KEY (codrole) REFERENCES roles (codrole) ON DELETE SET NULL ON UPDATE CASCADE</type>
+    </constraint>
+</table>

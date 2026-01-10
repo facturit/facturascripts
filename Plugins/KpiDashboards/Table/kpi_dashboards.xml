@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Table definition for KPI dashboards.
+-->
+<table>
+    <column>
+        <name>id</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>name</name>
+        <type>character varying(100)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>description</name>
+        <type>character varying(300)</type>
+    </column>
+    <column>
+        <name>layout</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>theme</name>
+        <type>character varying(50)</type>
+    </column>
+    <column>
+        <name>owner</name>
+        <type>character varying(50)</type>
+    </column>
+    <column>
+        <name>enabled</name>
+        <type>boolean</type>
+        <default>true</default>
+    </column>
+    <constraint>
+        <name>kpi_dashboards_pkey</name>
+        <type>PRIMARY KEY (id)</type>
+    </constraint>
+    <constraint>
+        <name>kpi_dashboards_owner_fk</name>
+        <type>FOREIGN KEY (owner) REFERENCES users (nick) ON DELETE SET NULL ON UPDATE CASCADE</type>
+    </constraint>
+</table>

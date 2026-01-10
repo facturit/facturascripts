@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * KPI dashboard sharing edit view.
+-->
+<view>
+    <columns>
+        <group name="data" numcolumns="12">
+            <column name="dashboard" description="optional" display="none" numcolumns="2" order="100">
+                <widget type="number" fieldname="iddashboard" readonly="true" />
+            </column>
+            <column name="share-type" numcolumns="3" order="110">
+                <widget type="select" fieldname="sharetype" required="true">
+                    <values>
+                        <value key="user">user</value>
+                        <value key="role">role</value>
+                    </values>
+                </widget>
+            </column>
+            <column name="user" numcolumns="4" order="120">
+                <widget type="select" fieldname="nick">
+                    <values source="users" fieldcode="nick" fieldtitle="nick" />
+                </widget>
+            </column>
+            <column name="role" numcolumns="3" order="130">
+                <widget type="select" fieldname="codrole">
+                    <values source="roles" fieldcode="codrole" fieldtitle="descripcion" />
+                </widget>
+            </column>
+            <column name="can-edit" numcolumns="2" order="140">
+                <widget type="checkbox" fieldname="canedit" />
+            </column>
+        </group>
+    </columns>
+</view>
