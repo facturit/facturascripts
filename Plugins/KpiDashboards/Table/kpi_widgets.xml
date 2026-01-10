@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Table definition for KPI widgets.
+-->
+<table>
+    <column>
+        <name>id</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>iddashboard</name>
+        <type>integer</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>title</name>
+        <type>character varying(150)</type>
+    </column>
+    <column>
+        <name>type</name>
+        <type>character varying(30)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>position</name>
+        <type>integer</type>
+        <default>0</default>
+    </column>
+    <column>
+        <name>config</name>
+        <type>text</type>
+    </column>
+    <constraint>
+        <name>kpi_widgets_pkey</name>
+        <type>PRIMARY KEY (id)</type>
+    </constraint>
+    <constraint>
+        <name>kpi_widgets_dashboard_fk</name>
+        <type>FOREIGN KEY (iddashboard) REFERENCES kpi_dashboards (id) ON DELETE CASCADE ON UPDATE CASCADE</type>
+    </constraint>
+</table>

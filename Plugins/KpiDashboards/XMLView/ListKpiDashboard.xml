@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * KPI dashboards list view.
+-->
+<view>
+    <columns>
+        <column name="code" order="100">
+            <widget type="text" fieldname="id" onclick="EditKpiDashboard" />
+        </column>
+        <column name="name" order="110">
+            <widget type="text" fieldname="name" />
+        </column>
+        <column name="owner" order="120">
+            <widget type="select" fieldname="owner">
+                <values source="users" fieldcode="nick" fieldtitle="nick" />
+            </widget>
+        </column>
+        <column name="enabled" display="center" order="130">
+            <widget type="checkbox" fieldname="enabled" />
+        </column>
+        <column name="description" order="140">
+            <widget type="text" fieldname="description" />
+        </column>
+    </columns>
+</view>
