@@ -4,7 +4,9 @@
 /doc/
 /MyFiles/
 /node_modules/
-/Plugins/
+/Plugins/*
+!/Plugins/RefProveedorLineas/
+!/Plugins/RefProveedorLineas/**
 /vendor/
 .DS_Store
 .htaccess
