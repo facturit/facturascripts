@@ -5,6 +5,10 @@
 /MyFiles/
 /node_modules/
 /Plugins/
+!/Plugins/
+/Plugins/*
+!/Plugins/IframeEmbed/
+!/Plugins/IframeEmbed/**
 /vendor/
 .DS_Store
 .htaccess
